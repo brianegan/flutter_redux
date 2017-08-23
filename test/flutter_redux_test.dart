@@ -31,6 +31,28 @@ void main() {
     expect(captor.store, store);
   });
 
+  testWidgets('StoreProvider should update the children if the store changes',
+      (WidgetTester tester) async {
+    final defaultState = "test";
+    final newState = "new";
+    Widget widget([String state]) {
+      return new StoreProvider(
+        store: new Store(
+          new IdentityReducer(),
+          initialState: state,
+        ),
+        child: new StoreCaptor(),
+      );
+    }
+
+    await tester.pumpWidget(widget(defaultState));
+    await tester.pumpWidget(widget(newState));
+
+    StoreCaptor captor = tester.firstWidget(find.byType(StoreCaptor));
+
+    expect(captor.store.state, newState);
+  });
+
   testWidgets(
       'StoreConnector initially builds from the current state of the store',
       (WidgetTester tester) async {
@@ -86,7 +108,7 @@ void main() {
     store.dispatch(newState);
 
     // Build the widget again with the new state
-    await tester.pump(Duration.ZERO);
+    await tester.pumpWidget(widget);
 
     expect(find.text(newState), findsOneWidget);
   });
@@ -123,7 +145,7 @@ void main() {
     // By default, this should still trigger a rebuild
     store.dispatch(initial);
 
-    await tester.pump(Duration.ZERO);
+    await tester.pumpWidget(widget);
 
     expect(numBuilds, 2);
   });
