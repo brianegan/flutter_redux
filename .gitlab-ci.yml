@@ -1,10 +1,9 @@
-image: brianegan/flutter:v7
-
 stages:
   - test
   - deploy
 
 unit_test:
+  image: brianegan/flutter:v7
   stage: test
   script:
     - flutter test --coverage
@@ -14,6 +13,7 @@ unit_test:
       - coverage/
 
 pages:
+  image: alpine
   stage: deploy
   dependencies:
     - unit_test
