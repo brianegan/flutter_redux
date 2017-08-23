@@ -5,6 +5,7 @@ author: brian.egan <brian@brianegan.com>
 homepage: https://gitlab.com/brianegan/flutter_redux
 
 dependencies:
+  meta: ">=1.1.1 <2.0.0"
   redux: ">=1.1.0 <2.0.0"
   flutter:
     sdk: flutter
