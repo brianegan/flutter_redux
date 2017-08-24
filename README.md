@@ -2,7 +2,9 @@
 
 [![build status](https://gitlab.com/brianegan/flutter_redux/badges/master/build.svg)](https://gitlab.com/brianegan/flutter_redux/commits/master)  [![coverage report](https://gitlab.com/brianegan/flutter_redux/badges/master/coverage.svg)](https://brianegan.gitlab.io/flutter_redux/coverage/)
 
-A set of utilities that allow you to easily consume a Redux Store to build Flutter Widgets.
+A set of utilities that allow you to easily consume a [Redux](https://pub.dartlang.org/packages/redux) Store to build Flutter Widgets.
+
+This package is built to work with [Redux.dart](https://pub.dartlang.org/packages/redux). If you use Greencat, check out [flutter_greencat](https://pub.dartlang.org/packages/flutter_greencat). 
 
 ## Redux Widgets 
 
