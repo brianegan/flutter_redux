@@ -7,41 +7,12 @@ enum Actions { Increment }
 
 // The reducer, which takes the previous count and increments it in response
 // to an Increment action.
-class CounterReducer extends ReducerClass<int> {
-  @override
-  int call(int state, action) {
-    if (action == Actions.Increment) {
-      return state + 1;
-    }
-
-    return state;
+int counterReducer(int state, action) {
+  if (action == Actions.Increment) {
+    return state + 1;
   }
-}
 
-// This class represents the data that will be passed to the `builder` function.
-//
-// In our case, we need only two pieces of data: The current count and a
-// callback function that we can attach to the increment button.
-//
-// The callback will be responsible for dispatching an Increment action.
-//
-// If you come from React, think of this as your PropTypes, but in a type-safe
-// world!
-class ViewModel {
-  final int count;
-  final VoidCallback onIncrementPressed;
-
-  ViewModel(
-    this.count,
-    this.onIncrementPressed,
-  );
-
-  factory ViewModel.fromStore(Store<int> store) {
-    return new ViewModel(
-      store.state,
-      () => store.dispatch(Actions.Increment),
-    );
-  }
+  return state;
 }
 
 void main() {
@@ -51,7 +22,7 @@ void main() {
 class FlutterReduxApp extends StatelessWidget {
   // Create your store as a final variable in a base Widget. This works better
   // with Hot Reload than creating it directly in the `build` function.
-  final store = new Store(new CounterReducer(), initialState: 0);
+  final store = new Store(counterReducer, initialState: 0);
 
   @override
   Widget build(BuildContext context) {
@@ -73,42 +44,47 @@ class FlutterReduxApp extends StatelessWidget {
         // through the reducer. After the reducer updates the state, the Widget
         // will be automatically rebuilt. No need to manually manage
         // subscriptions or Streams!
-        child: new StoreConnector<int, ViewModel>(
-          // Convert the store into a ViewModel. This ViewModel will be passed
-          // to the `builder` below as the second argument.
-          converter: (store) => new ViewModel.fromStore(store),
-
-          // Take the `ViewModel` created by the `converter` function above and
-          // build a Widget with the data!
-          builder: (context, viewModel) {
-            return new Scaffold(
-              appBar: new AppBar(
-                title: new Text(title),
-              ),
-              body: new Center(
-                child: new Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    new Text(
-                      'You have pushed the button this many times:',
-                    ),
-                    new Text(
-                      // Grab the latest count from the ViewModel
-                      viewModel.count.toString(),
-                      style: Theme.of(context).textTheme.display1,
-                    ),
-                  ],
+        child: new Scaffold(
+          appBar: new AppBar(
+            title: new Text(title),
+          ),
+          body: new Center(
+            child: new Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                new Text(
+                  'You have pushed the button this many times:',
                 ),
-              ),
-              floatingActionButton: new FloatingActionButton(
-                // Attach the ViewModel's callback to the Floating Action Button
-                // The callback simply dispatches the `Increment` action.
-                onPressed: viewModel.onIncrementPressed,
-                tooltip: 'Increment',
-                child: new Icon(Icons.add),
-              ),
-            );
-          },
+                // Connect the Store to a Text Widget that renders the current
+                // count.
+                new StoreConnector<int, String>(
+                  converter: (store) => store.state.toString(),
+                  builder: (context, count) => new Text(
+                        count,
+                        style: Theme.of(context).textTheme.display1,
+                      ),
+                )
+              ],
+            ),
+          ),
+          // Connect the Store to a FloatingActionButton. In this case, we'll
+          // use the Store to build a callback that with dispatch an Increment
+          // Action.
+          //
+          // Then, we'll use this callback to the button's `onPressed` handler.
+          floatingActionButton: new StoreConnector<int, VoidCallback>(
+            converter: (store) {
+              // Return a `VoidCallback`, which is a fancy name for a function
+              // with no parameters.
+              return () => store.dispatch(Actions.Increment);
+            },
+            builder: (context, callback) => new FloatingActionButton(
+                  // Attach the onIncrementPressed VoidCallback
+                  onPressed: callback,
+                  tooltip: 'Increment',
+                  child: new Icon(Icons.add),
+                ),
+          ),
         ),
       ),
     );
