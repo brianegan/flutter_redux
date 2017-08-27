@@ -7,15 +7,14 @@ enum Actions { Increment }
 
 // The reducer, which takes the previous count and increments it in response
 // to an Increment action.
-class CounterReducer extends Reducer<int, Actions> {
+class CounterReducer extends ReducerClass<int> {
   @override
-  int reduce(int state, Actions action) {
-    switch (action) {
-      case Actions.Increment:
-        return (state + 1);
-      default:
-        return state;
+  int call(int state, action) {
+    if (action == Actions.Increment) {
+      return state + 1;
     }
+
+    return state;
   }
 }
 
@@ -37,7 +36,7 @@ class ViewModel {
     this.onIncrementPressed,
   );
 
-  factory ViewModel.fromStore(Store<int, Actions> store) {
+  factory ViewModel.fromStore(Store<int> store) {
     return new ViewModel(
       store.state,
       () => store.dispatch(Actions.Increment),
@@ -74,7 +73,7 @@ class FlutterReduxApp extends StatelessWidget {
         // through the reducer. After the reducer updates the state, the Widget
         // will be automatically rebuilt. No need to manually manage
         // subscriptions or Streams!
-        child: new StoreConnector<int, Actions, ViewModel>(
+        child: new StoreConnector<int, ViewModel>(
           // Convert the store into a ViewModel. This ViewModel will be passed
           // to the `builder` below as the second argument.
           converter: (store) => new ViewModel.fromStore(store),

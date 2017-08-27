@@ -1,12 +1,12 @@
 name: flutter_redux
 description: A library that connects Widgets to a Redux Store
-version: 0.1.1
+version: 0.2.0
 author: Brian Egan <brian@brianegan.com>
 homepage: https://gitlab.com/brianegan/flutter_redux
 
 dependencies:
   meta: ">=1.1.1 <2.0.0"
-  redux: ">=1.1.0 <2.0.0"
+  redux: ">=2.0.0 <3.0.0"
   flutter:
     sdk: flutter
 
