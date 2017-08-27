@@ -4,9 +4,9 @@ import 'package:redux/redux.dart';
 
 import 'package:flutter_redux/flutter_redux.dart';
 
-class IdentityReducer<Action> extends Reducer<Action, Action> {
+class IdentityReducer<Action> extends ReducerClass<Action> {
   @override
-  Action reduce(Action state, Action action) {
+  Action call(Action state, action) {
     return action;
   }
 }
@@ -198,7 +198,7 @@ void main() {
 
 // ignore: must_be_immutable
 class StoreCaptor<S, A> extends StatelessWidget {
-  Store<S, A> store;
+  Store<S> store;
 
   StoreCaptor({Key key}) : super(key: key);
 

@@ -7,8 +7,8 @@ import 'package:meta/meta.dart';
 import 'package:redux/redux.dart';
 
 /// Provides a Redux [Store] to all ancestors of this Widget
-class StoreProvider<S, A> extends InheritedWidget {
-  final Store<S, A> store;
+class StoreProvider<S> extends InheritedWidget {
+  final Store<S> store;
 
   const StoreProvider({
     Key key,
@@ -19,12 +19,8 @@ class StoreProvider<S, A> extends InheritedWidget {
         assert(child != null),
         super(key: key, child: child);
 
-  static StoreProvider of(BuildContext context) {
-    final StoreProvider widget =
-        context.inheritFromWidgetOfExactType(StoreProvider);
-
-    return widget;
-  }
+  static StoreProvider of(BuildContext context) =>
+      context.inheritFromWidgetOfExactType(StoreProvider);
 
   @override
   bool updateShouldNotify(StoreProvider old) => store != old.store;
@@ -39,8 +35,8 @@ typedef Widget ViewModelBuilder<ViewModel>(
 
 /// Convert the entire [Store] into a [ViewModel]. The [ViewModel] will be used
 /// to build a Widget using the [ViewModelBuilder].
-typedef ViewModel StoreConverter<S, A, ViewModel>(
-  Store<S, A> store,
+typedef ViewModel StoreConverter<S, ViewModel>(
+  Store<S> store,
 );
 
 /// Build a widget based on the state of the [Store].
@@ -52,9 +48,9 @@ typedef ViewModel StoreConverter<S, A, ViewModel>(
 /// optimization, the Widget can be rebuilt only when the [ViewModel] changes.
 /// In order for this to work correctly, you must implement [==] and [hashCode]
 /// for the [ViewModel].
-class StoreConnector<S, A, ViewModel> extends StatelessWidget {
+class StoreConnector<S, ViewModel> extends StatelessWidget {
   final ViewModelBuilder<ViewModel> builder;
-  final StoreConverter<S, A, ViewModel> converter;
+  final StoreConverter<S, ViewModel> converter;
   final bool distinct;
 
   StoreConnector({
@@ -68,8 +64,7 @@ class StoreConnector<S, A, ViewModel> extends StatelessWidget {
         super(key: key);
 
   @override
-  Widget build(BuildContext context) =>
-      new _StoreStreamListener<S, A, ViewModel>(
+  Widget build(BuildContext context) => new _StoreStreamListener<S, ViewModel>(
         store: StoreProvider.of(context).store,
         builder: builder,
         converter: converter,
@@ -83,30 +78,28 @@ class StoreConnector<S, A, ViewModel> extends StatelessWidget {
 /// build a `ViewModel` specifically for your Widget rather than passing through
 /// the entire [Store], but this is provided for convenience when that isn't
 /// necessary.
-class StoreBuilder<S, A> extends StatelessWidget {
-  static Store<State, Action> _identity<State, Action>(
-          Store<State, Action> store) =>
-      store;
+class StoreBuilder<S> extends StatelessWidget {
+  static Store<S> _identity<S>(Store<S> store) => store;
 
-  final ViewModelBuilder<Store<S, A>> builder;
+  final ViewModelBuilder<Store<S>> builder;
 
   StoreBuilder({@required this.builder, Key key})
       : assert(builder != null),
         super(key: key);
 
   @override
-  Widget build(BuildContext context) => new StoreConnector<S, A, Store<S, A>>(
+  Widget build(BuildContext context) => new StoreConnector<S, Store<S>>(
         builder: builder,
         converter: _identity,
       );
 }
 
 /// Listens to the [Store] and calls [builder] whenever [store] changes.
-class _StoreStreamListener<S, A, ViewModel> extends StatelessWidget {
+class _StoreStreamListener<S, ViewModel> extends StatelessWidget {
   final Stream<ViewModel> stream;
   final ViewModelBuilder<ViewModel> builder;
-  final StoreConverter<S, A, ViewModel> converter;
-  final Store<S, A> store;
+  final StoreConverter<S, ViewModel> converter;
+  final Store<S> store;
 
   _StoreStreamListener._({
     @required this.builder,
@@ -118,8 +111,8 @@ class _StoreStreamListener<S, A, ViewModel> extends StatelessWidget {
       : super(key: key);
 
   factory _StoreStreamListener({
-    @required Store<S, A> store,
-    @required StoreConverter<S, A, ViewModel> converter,
+    @required Store<S> store,
+    @required StoreConverter<S, ViewModel> converter,
     @required ViewModelBuilder<ViewModel> builder,
     bool distinct = false,
     Key key,

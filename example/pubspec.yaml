@@ -6,9 +6,8 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
-  redux: 1.1.0
-  flutter_redux:
-    path: ../
+  redux: 2.0.0
+  flutter_redux: 0.2.0
   flutter_test:
     sdk: flutter
 
