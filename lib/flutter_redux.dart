@@ -55,12 +55,14 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   final ViewModelBuilder<ViewModel> builder;
   final StoreConverter<S, ViewModel> converter;
   final bool distinct;
+  final bool rebuildOnChange;
 
   StoreConnector({
     @required this.builder,
     @required this.converter,
     this.distinct = false,
     Key key,
+    this.rebuildOnChange = true,
   })
       : assert(builder != null),
         assert(converter != null),
@@ -68,11 +70,11 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => new _StoreStreamListener<S, ViewModel>(
-        store: new StoreProvider.of(context).store,
-        builder: builder,
-        converter: converter,
-        distinct: distinct,
-      );
+      store: new StoreProvider.of(context).store,
+      builder: builder,
+      converter: converter,
+      distinct: distinct,
+      rebuildOnChange: rebuildOnChange);
 }
 
 /// Build a Widget by passing the [Store] directly to the build function.
@@ -85,8 +87,9 @@ class StoreBuilder<S> extends StatelessWidget {
   static Store<S> _identity<S>(Store<S> store) => store;
 
   final ViewModelBuilder<Store<S>> builder;
+  final bool rebuildOnChange;
 
-  StoreBuilder({@required this.builder, Key key})
+  StoreBuilder({@required this.builder, Key key, this.rebuildOnChange = true})
       : assert(builder != null),
         super(key: key);
 
@@ -94,6 +97,7 @@ class StoreBuilder<S> extends StatelessWidget {
   Widget build(BuildContext context) => new StoreConnector<S, Store<S>>(
         builder: builder,
         converter: _identity,
+        rebuildOnChange: rebuildOnChange,
       );
 }
 
@@ -103,12 +107,14 @@ class _StoreStreamListener<S, ViewModel> extends StatelessWidget {
   final ViewModelBuilder<ViewModel> builder;
   final StoreConverter<S, ViewModel> converter;
   final Store<S> store;
+  final bool rebuildOnChange;
 
   _StoreStreamListener._({
     @required this.builder,
     @required this.stream,
     @required this.store,
     @required this.converter,
+    this.rebuildOnChange = true,
     Key key,
   })
       : super(key: key);
@@ -118,6 +124,7 @@ class _StoreStreamListener<S, ViewModel> extends StatelessWidget {
     @required StoreConverter<S, ViewModel> converter,
     @required ViewModelBuilder<ViewModel> builder,
     bool distinct = false,
+    bool rebuildOnChange = true,
     Key key,
   }) {
     var stream = store.onChange.map((_) => converter(store));
@@ -141,17 +148,20 @@ class _StoreStreamListener<S, ViewModel> extends StatelessWidget {
       converter: converter,
       store: store,
       key: key,
+      rebuildOnChange: rebuildOnChange,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return new StreamBuilder(
-      stream: stream,
-      builder: (context, snapshot) => builder(
-            context,
-            snapshot.hasData ? snapshot.data : converter(store),
-          ),
-    );
+    return rebuildOnChange
+        ? new StreamBuilder(
+            stream: stream,
+            builder: (context, snapshot) => builder(
+                  context,
+                  snapshot.hasData ? snapshot.data : converter(store),
+                ),
+          )
+        : builder(context, converter(store));
   }
 }

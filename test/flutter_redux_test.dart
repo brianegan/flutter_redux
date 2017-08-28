@@ -139,10 +139,7 @@ void main() {
 
       expect(numBuilds, 1);
 
-      // Dispatch the exact same event. This will cause a change on the Store,
-      // but would result in no change to the UI.
-      //
-      // By default, this should still trigger a rebuild
+      // Dispatch the exact same event. This should still trigger a rebuild
       store.dispatch(initial);
 
       await tester.pumpWidget(widget);
@@ -192,6 +189,44 @@ void main() {
       await tester.pumpWidget(widget);
 
       expect(numBuilds, 2);
+    });
+
+    testWidgets('does not rebuild if rebuildOnChange is set to false',
+        (WidgetTester tester) async {
+      int numBuilds = 0;
+      final initial = "initial";
+      final store = new Store(
+        new IdentityReducer(),
+        initialState: initial,
+      );
+      final widget = new StoreProvider(
+        store: store,
+        child: new StoreConnector(
+          converter: (store) => store.state,
+          rebuildOnChange: false,
+          builder: (context, latest) {
+            numBuilds++;
+
+            return new Container();
+          },
+        ),
+      );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 1);
+
+      // Dispatch the exact same event. This will cause a change on the Store,
+      // but would result in no change to the UI since `rebuildOnChange` is
+      // false.
+      //
+      // By default, this should still trigger a rebuild
+      store.dispatch(initial);
+
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 1);
     });
   });
 }
