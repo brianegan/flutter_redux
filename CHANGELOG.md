@@ -1,3 +1,8 @@
+# 0.3.0
+
+  * Make `StoreProvider.of` a factory rather than a static method
+  * Additional documentation based on questions from the community
+  
 # 0.2.0
 
   * Update for Redux 2.0.0

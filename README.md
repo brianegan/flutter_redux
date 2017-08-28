@@ -21,8 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-// Start by creating your normal "Redux Setup."
-
 // One simple action: Increment
 enum Actions { Increment }
 
@@ -56,15 +54,6 @@ class FlutterReduxApp extends StatelessWidget {
         // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
         // Widgets will find and use this value as the `Store`.
         store: store,
-        // Our child will be a `StoreConnector` Widget. The `StoreConnector`
-        // will find the `Store` from the nearest `StoreProvider` ancestor,
-        // convert it into a ViewModel, and pass that ViewModel to the
-        // `builder` function.
-        //
-        // Every time the button is tapped, an action is dispatched and run
-        // through the reducer. After the reducer updates the state, the Widget
-        // will be automatically rebuilt. No need to manually manage
-        // subscriptions or Streams!
         child: new Scaffold(
           appBar: new AppBar(
             title: new Text(title),
@@ -78,6 +67,17 @@ class FlutterReduxApp extends StatelessWidget {
                 ),
                 // Connect the Store to a Text Widget that renders the current
                 // count.
+                //
+                // We'll wrap the Text Widget in a `StoreConnector` Widget. The
+                // `StoreConnector` will find the `Store` from the nearest
+                // `StoreProvider` ancestor, convert it into a String of the
+                // latest count, and pass that String  to the `builder` function
+                // as the `count`.
+                //
+                // Every time the button is tapped, an action is dispatched and
+                // run through the reducer. After the reducer updates the state,
+                // the Widget will be automatically rebuilt with the latest
+                // count. No need to manually manage subscriptions or Streams!
                 new StoreConnector<int, String>(
                   converter: (store) => store.state.toString(),
                   builder: (context, count) => new Text(
@@ -92,15 +92,15 @@ class FlutterReduxApp extends StatelessWidget {
           // use the Store to build a callback that with dispatch an Increment
           // Action.
           //
-          // Then, we'll use this callback to the button's `onPressed` handler.
+          // Then, we'll pass this callback to the button's `onPressed` handler.
           floatingActionButton: new StoreConnector<int, VoidCallback>(
             converter: (store) {
               // Return a `VoidCallback`, which is a fancy name for a function
-              // with no parameters.
+              // with no parameters. It only dispatches an Increment action.
               return () => store.dispatch(Actions.Increment);
             },
             builder: (context, callback) => new FloatingActionButton(
-                  // Attach the onIncrementPressed VoidCallback
+                  // Attach the `callback` to the `onPressed` attribute
                   onPressed: callback,
                   tooltip: 'Increment',
                   child: new Icon(Icons.add),
@@ -111,5 +111,34 @@ class FlutterReduxApp extends StatelessWidget {
     );
   }
 }
-
 ```  
+
+### Purpose
+
+One question that [reasonable people might ask](https://www.reddit.com/r/FlutterDev/comments/6vscdy/a_set_of_utilities_that_allow_you_to_easily/dm3ll7d/): Why do you need all of this if `StatefulWidget` exists?
+
+My advice is the same as the original Redux.JS author: If you've got a simple app, use the simplest thing possible. In Flutter, `StatefulWidget` is perfect for a simple counter app.
+
+However, say you have more complex app, such as an E-commerce app with a Shopping Cart. The Shopping Cart should appear on multiple screens in your app and should be updated by many different types of Widgets on those different screens (An "Add Item to Cart" Widget on all your Product Screens, "Remove Item from Cart" Widget on the Shopping Cart Screen, "Change quantity" Widgets, etc).
+
+Additionally, you definitely want to test this logic, as it's the core business logic to your app!
+
+Now, in this case, you could create a Testable `ShoppingCart` class as a Singleton or Create a Root `StatefulWidget` that passes the `ShoppingCart `*Down Down Down* through your widget hierarchy to the "add to cart" or "remove from cart" Widgets . 
+
+Singletons can be problematic for testing, and Flutter doesn't have a great Dependency Injection library (such as Dagger2) just yet, so I'd prefer to avoid those.
+
+Yet passing the ShoppingCart all over the place can get messy. It also means it's way harder to move that "Add to Item" button to a new location, b/c you'd need up update the Widgets throughout your app that passes the state down.
+
+Furthermore, you'd need a way to Observe when the `ShoppingCart` Changes so you could rebuild your Widgets when it does (from an "Add" button to an "Added" button, as an example). 
+
+One way to handle it would be to simply `setState` every time the `ShoppingCart` changes in your Root Widget, but then your whole app below the RootWidget would be required to rebuild as well! Flutter is fast, but we should be smart about what we ask Flutter to rebuild!
+
+Therefore, `redux` & `redux_flutter` was born for more complex stories like this one. It gives you a set of tools that allow your Widgets to `dispatch` actions in a naive way, then write the business logic in another place that will take those actions and update the `ShoppingCart` in a safe, testable way. 
+
+Even more, once the `ShoppingCart` has been updated in the `Store`, the `Store` will emit an `onChange` event. This lets you listen to `Store` updates and rebuild your UI in the right places when it changes! Now, you can separate your business logic from your UI logic in a testable, observable way, without having to Wire up a bunch of stuff yourself! 
+
+Similar patterns in Android are the MVP Pattern, or using Rx Observables to manage a View's state.
+
+`flutter_redux` simply handles passing your `Store` down to all of your descendant `StoreConnector` Widgets. If your State emits a change event, only the `StoreConnector` Widgets and their descendants will be automatically rebuilt with the latest state of the `Store`! 
+
+This allows you to focus on what your app should look like and how it should work without thinking about all the glue code to hook everything together!

@@ -6,8 +6,8 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
-  redux: 2.0.0
-  flutter_redux: 0.2.0
+  redux: ">=2.0.0 <3.0.0"
+  flutter_redux: ">=0.3.0 <0.4.0"
   flutter_test:
     sdk: flutter
 

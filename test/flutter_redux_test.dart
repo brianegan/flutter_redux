@@ -204,7 +204,7 @@ class StoreCaptor<S, A> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    store = StoreProvider.of(context).store;
+    store = new StoreProvider.of(context).store;
 
     return new Container();
   }

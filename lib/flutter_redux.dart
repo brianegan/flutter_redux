@@ -6,7 +6,9 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:redux/redux.dart';
 
-/// Provides a Redux [Store] to all ancestors of this Widget
+/// Provides a Redux [Store] to all ancestors of this Widget. This should
+/// generally be a root widget in your App. Connect to the Store provided
+/// by this Widget using a [StoreConnector] or [StoreBuilder].
 class StoreProvider<S> extends InheritedWidget {
   final Store<S> store;
 
@@ -19,7 +21,7 @@ class StoreProvider<S> extends InheritedWidget {
         assert(child != null),
         super(key: key, child: child);
 
-  static StoreProvider of(BuildContext context) =>
+  factory StoreProvider.of(BuildContext context) =>
       context.inheritFromWidgetOfExactType(StoreProvider);
 
   @override
@@ -47,7 +49,8 @@ typedef ViewModel StoreConverter<S, ViewModel>(
 /// Every time the store changes, the Widget will be rebuilt. As a performance
 /// optimization, the Widget can be rebuilt only when the [ViewModel] changes.
 /// In order for this to work correctly, you must implement [==] and [hashCode]
-/// for the [ViewModel].
+/// for the [ViewModel], and set the [distinct] option to true when creating
+/// your StoreConnector.
 class StoreConnector<S, ViewModel> extends StatelessWidget {
   final ViewModelBuilder<ViewModel> builder;
   final StoreConverter<S, ViewModel> converter;
@@ -65,7 +68,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => new _StoreStreamListener<S, ViewModel>(
-        store: StoreProvider.of(context).store,
+        store: new StoreProvider.of(context).store,
         builder: builder,
         converter: converter,
         distinct: distinct,
