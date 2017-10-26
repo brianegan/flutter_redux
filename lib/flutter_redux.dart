@@ -84,13 +84,21 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// onChange event.
   final bool rebuildOnChange;
 
-  /// Enabled by default. If enabled, `null` values produced by your [converter]
-  /// will be sent to the [builder] to be converted into a Widget.
+  /// For the special use case of running animations while removing items from
+  /// your Store. When your [converter] runs and produces a Null value in
+  /// response to a State change, you might not want to rebuild the Widget.
+  /// To do so, set [rebuildNullViewModels] to false.
   ///
-  /// In some cases, however, it can be useful to avoid rebuilding when the
-  /// [converter] produces a null value, such as removing an item from your
-  /// [Store] while performing an animation on a Widget.
-  final bool rebuildOnNull;
+  /// Example Use case:
+  ///
+  /// Say you want to delete an Item from your Store. The new value from the
+  /// Store will be immediately pushed and rendered. Yay! The Item is now
+  /// removed. But wait, it was animating off screen! NullPointerException Red
+  /// boxes appear everywhere!
+  ///
+  /// In this case, you can return a null value from your converter. If you do
+  /// so, the widget will not be rebuilt.
+  final bool rebuildNullViewModels;
 
   StoreConnector({
     Key key,
@@ -99,7 +107,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
     this.distinct = false,
     this.onInit,
     this.rebuildOnChange = true,
-    this.rebuildOnNull = true,
+    this.rebuildNullViewModels = true,
   })
       : assert(builder != null),
         assert(converter != null),
@@ -113,7 +121,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
         distinct: distinct,
         onInit: onInit,
         rebuildOnChange: rebuildOnChange,
-        rebuildOnNull: rebuildOnNull,
+        rebuildNullViewModels: rebuildNullViewModels,
       );
 }
 
@@ -160,21 +168,23 @@ class StoreBuilder<S> extends StatelessWidget {
 
 /// Listens to the [Store] and calls [builder] whenever [store] changes.
 class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
-  final Stream<ViewModel> stream;
   final ViewModelBuilder<ViewModel> builder;
   final StoreConverter<S, ViewModel> converter;
   final Store<S> store;
   final bool rebuildOnChange;
+  final bool distinct;
+  final bool rebuildNullViewModels;
   final OnInitCallback onInit;
 
   _StoreStreamListener._({
     Key key,
     @required this.builder,
-    @required this.stream,
     @required this.store,
     @required this.converter,
+    this.distinct = false,
     this.onInit,
     this.rebuildOnChange = true,
+    this.rebuildNullViewModels = true,
   })
       : super(key: key);
 
@@ -186,35 +196,17 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
     bool distinct = false,
     OnInitCallback onInit,
     bool rebuildOnChange = true,
-    bool rebuildOnNull = true,
+    bool rebuildNullViewModels = true,
   }) {
-    var stream = store.onChange.map((_) => converter(store));
-
-    // Don't use `Stream.distinct` because it cannot capture the initial
-    // ViewModel produced by the `converter`.
-    if (distinct) {
-      var latestValue = converter(store);
-
-      stream = stream.where((vm) {
-        final isDistinct = vm != latestValue;
-        latestValue = vm;
-
-        return isDistinct;
-      });
-    }
-
-    if (!rebuildOnNull) {
-      stream = stream.where((item) => item != null);
-    }
-
     return new _StoreStreamListener._(
       builder: builder,
-      stream: stream,
       converter: converter,
       store: store,
       key: key,
       rebuildOnChange: rebuildOnChange,
       onInit: onInit,
+      distinct: distinct,
+      rebuildNullViewModels: rebuildNullViewModels,
     );
   }
 
@@ -224,9 +216,40 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
   }
 }
 
-class _StoreStreamListenerState extends State<_StoreStreamListener> {
+class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
+  Stream<ViewModel> stream;
+  ViewModel latestValue;
+
   @override
   void initState() {
+    stream = widget.store.onChange.map((_) => widget.converter(widget.store));
+    latestValue = widget.converter(widget.store);
+
+    // Don't use `Stream.distinct` because it cannot capture the initial
+    // ViewModel produced by the `converter`.
+    if (widget.distinct) {
+      stream = stream.where((vm) {
+        final isDistinct = vm != latestValue;
+
+        return isDistinct;
+      });
+    }
+
+    if (!widget.rebuildNullViewModels) {
+      stream = stream.where((item) {
+        return item != null;
+      });
+    }
+
+    // Poor man's doOnNext. After each ViewModel is emitted from the Stream, we
+    // update the latestValue. Important: This must be done after all other
+    // optional transformations, such as distinct or rebuildNullViewModels.
+    stream = stream
+        .transform(new StreamTransformer.fromHandlers(handleData: (vm, sink) {
+      latestValue = vm;
+      sink.add(vm);
+    }));
+
     if (widget.onInit != null) {
       widget.onInit(widget.store);
     }
@@ -238,14 +261,12 @@ class _StoreStreamListenerState extends State<_StoreStreamListener> {
   Widget build(BuildContext context) {
     return widget.rebuildOnChange
         ? new StreamBuilder(
-            stream: widget.stream,
+            stream: stream,
             builder: (context, snapshot) => widget.builder(
                   context,
-                  snapshot.hasData
-                      ? snapshot.data
-                      : widget.converter(widget.store),
+                  snapshot.hasData ? snapshot.data : latestValue,
                 ),
           )
-        : widget.builder(context, widget.converter(widget.store));
+        : widget.builder(context, latestValue);
   }
 }

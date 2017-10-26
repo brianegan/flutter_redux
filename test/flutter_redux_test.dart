@@ -170,50 +170,6 @@ void main() {
       expect(numBuilds, 2);
     });
 
-    testWidgets(
-        'avoids rebuilds when distinct is used with an object that implements ==',
-        (WidgetTester tester) async {
-      var numBuilds = 0;
-      final initial = "initial";
-      final store = new Store(
-        new IdentityReducer(),
-        initialState: initial,
-      );
-      final widget = new StoreProvider(
-        store: store,
-        child: new StoreConnector(
-          // Same exact setup as the previous test, but distinct is set to true.
-          distinct: true,
-          converter: (store) => store.state,
-          builder: (context, latest) {
-            numBuilds++;
-
-            return new Container();
-          },
-        ),
-      );
-
-      // Build the widget with the initial state
-      await tester.pumpWidget(widget);
-
-      expect(numBuilds, 1);
-
-      // Dispatch another action of the same type
-      store.dispatch(initial);
-
-      await tester.pumpWidget(widget);
-
-      expect(numBuilds, 1);
-
-      // Dispatch another action of a different type. This should trigger another
-      // rebuild
-      store.dispatch("new");
-
-      await tester.pumpWidget(widget);
-
-      expect(numBuilds, 2);
-    });
-
     testWidgets('does not rebuild if rebuildOnChange is set to false',
         (WidgetTester tester) async {
       var numBuilds = 0;
@@ -264,7 +220,7 @@ void main() {
         store: store,
         child: new StoreConnector(
           converter: (store) => store.state,
-          rebuildOnNull: false,
+          rebuildNullViewModels: false,
           builder: (context, latest) {
             numBuilds++;
 
@@ -288,7 +244,7 @@ void main() {
       expect(numBuilds, 1);
     });
 
-    testWidgets('optionally runs a function when the State is initialized',
+    testWidgets('StoreBuilder also runs a function when initialized',
         (WidgetTester tester) async {
       var numBuilds = 0;
       final action = "action";
@@ -298,17 +254,16 @@ void main() {
         initialState: action,
       );
       final widget = () => new StoreProvider(
-        store: store,
-        child: new StoreConnector(
-          onInit: onInit,
-          converter: (store) => store.state,
-          builder: (context, latest) {
-            numBuilds++;
+            store: store,
+            child: new StoreBuilder(
+              onInit: onInit,
+              builder: (context, store) {
+                numBuilds++;
 
-            return new Container();
-          },
-        ),
-      );
+                return new Container();
+              },
+            ),
+          );
 
       // Build the widget with the initial state
       await tester.pumpWidget(widget());
@@ -338,7 +293,7 @@ void main() {
       expect(onInit.callCount, 1);
     });
 
-    testWidgets('StoreBuilder also runs a function when initialized',
+    testWidgets('optionally runs a function when the State is initialized',
         (WidgetTester tester) async {
       var numBuilds = 0;
       final action = "action";
@@ -348,16 +303,17 @@ void main() {
         initialState: action,
       );
       final widget = () => new StoreProvider(
-        store: store,
-        child: new StoreBuilder(
-          onInit: onInit,
-          builder: (context, store) {
-            numBuilds++;
+            store: store,
+            child: new StoreConnector(
+              onInit: onInit,
+              converter: (store) => store.state,
+              builder: (context, latest) {
+                numBuilds++;
 
-            return new Container();
-          },
-        ),
-      );
+                return new Container();
+              },
+            ),
+          );
 
       // Build the widget with the initial state
       await tester.pumpWidget(widget());
@@ -385,6 +341,50 @@ void main() {
       // called a third time.
       expect(numBuilds, 3);
       expect(onInit.callCount, 1);
+    });
+
+    testWidgets(
+        'avoids rebuilds when distinct is used with an object that implements ==',
+        (WidgetTester tester) async {
+      var numBuilds = 0;
+      final initial = "initial";
+      final store = new Store(
+        new IdentityReducer(),
+        initialState: initial,
+      );
+      final widget = new StoreProvider(
+        store: store,
+        child: new StoreConnector(
+          // Same exact setup as the previous test, but distinct is set to true.
+          distinct: true,
+          converter: (store) => store.state,
+          builder: (context, latest) {
+            numBuilds++;
+
+            return new Container();
+          },
+        ),
+      );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 1);
+
+      // Dispatch another action of the same type
+      store.dispatch(initial);
+
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 1);
+
+      // Dispatch another action of a different type. This should trigger another
+      // rebuild
+      store.dispatch("new");
+
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 2);
     });
   });
 }
