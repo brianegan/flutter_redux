@@ -4,13 +4,6 @@ import 'package:redux/redux.dart';
 
 import 'package:flutter_redux/flutter_redux.dart';
 
-class IdentityReducer<Action> extends ReducerClass<Action> {
-  @override
-  Action call(Action state, action) {
-    return action;
-  }
-}
-
 void main() {
   group('StoreProvider', () {
     testWidgets('passes a Redux Store down to its ancestors',
@@ -53,6 +46,27 @@ void main() {
 
       expect(captor.store.state, newState);
     });
+
+    testWidgets('can run a function on Init', (WidgetTester tester) async {
+      final defaultState = "test";
+      final newState = "new";
+      Widget widget([String state]) {
+        return new StoreProvider(
+          store: new Store(
+            new IdentityReducer(),
+            initialState: state,
+          ),
+          child: new StoreCaptor(),
+        );
+      }
+
+      await tester.pumpWidget(widget(defaultState));
+      await tester.pumpWidget(widget(newState));
+
+      StoreCaptor captor = tester.firstWidget(find.byType(StoreCaptor));
+
+      expect(captor.store.state, newState);
+    });
   });
 
   group('StoreConnector', () {
@@ -62,7 +76,10 @@ void main() {
       final widget = new StoreProvider(
         store: new Store(new IdentityReducer(), initialState: initial),
         child: new StoreBuilder(
-          builder: (context, store) => new Text(store.state),
+          builder: (context, store) => new Text(
+                store.state,
+                textDirection: TextDirection.ltr,
+              ),
         ),
       );
 
@@ -78,7 +95,10 @@ void main() {
         store: new Store(new IdentityReducer(), initialState: initial),
         child: new StoreConnector(
           converter: (store) => store.state,
-          builder: (context, latest) => new Text(latest),
+          builder: (context, latest) => new Text(
+                latest,
+                textDirection: TextDirection.ltr,
+              ),
         ),
       );
 
@@ -98,7 +118,10 @@ void main() {
       final widget = new StoreProvider(
         store: store,
         child: new StoreBuilder(
-          builder: (context, store) => new Text(store.state),
+          builder: (context, store) => new Text(
+                store.state,
+                textDirection: TextDirection.ltr,
+              ),
         ),
       );
 
@@ -116,7 +139,7 @@ void main() {
 
     testWidgets('rebuilds by default whenever the store emits a change',
         (WidgetTester tester) async {
-      int numBuilds = 0;
+      var numBuilds = 0;
       final initial = "initial";
       final store = new Store(
         new IdentityReducer(),
@@ -150,7 +173,7 @@ void main() {
     testWidgets(
         'avoids rebuilds when distinct is used with an object that implements ==',
         (WidgetTester tester) async {
-      int numBuilds = 0;
+      var numBuilds = 0;
       final initial = "initial";
       final store = new Store(
         new IdentityReducer(),
@@ -193,7 +216,7 @@ void main() {
 
     testWidgets('does not rebuild if rebuildOnChange is set to false',
         (WidgetTester tester) async {
-      int numBuilds = 0;
+      var numBuilds = 0;
       final initial = "initial";
       final store = new Store(
         new IdentityReducer(),
@@ -228,6 +251,141 @@ void main() {
 
       expect(numBuilds, 1);
     });
+
+    testWidgets('does not rebuild if rebuildOnNull is set to false',
+        (WidgetTester tester) async {
+      var numBuilds = 0;
+      final initial = "initial";
+      final store = new Store(
+        new IdentityReducer(),
+        initialState: initial,
+      );
+      final widget = new StoreProvider(
+        store: store,
+        child: new StoreConnector(
+          converter: (store) => store.state,
+          rebuildOnNull: false,
+          builder: (context, latest) {
+            numBuilds++;
+
+            return new Container();
+          },
+        ),
+      );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 1);
+
+      // Dispatch a null value. This will cause a change on the Store,
+      // but would result in no rebuild since the `converter` is returning
+      // this null value.
+      store.dispatch(null);
+
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 1);
+    });
+
+    testWidgets('optionally runs a function when the State is initialized',
+        (WidgetTester tester) async {
+      var numBuilds = 0;
+      final action = "action";
+      final onInit = new OnInitCounter();
+      final store = new Store(
+        new IdentityReducer(),
+        initialState: action,
+      );
+      final widget = () => new StoreProvider(
+        store: store,
+        child: new StoreConnector(
+          onInit: onInit,
+          converter: (store) => store.state,
+          builder: (context, latest) {
+            numBuilds++;
+
+            return new Container();
+          },
+        ),
+      );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget());
+
+      // Expect the Widget to be rebuilt and the onInit method to be called
+      expect(onInit.callCount, 1);
+      expect(numBuilds, 1);
+
+      store.dispatch(action);
+
+      // Rebuild the widget
+      await tester.pumpWidget(widget());
+
+      // Expect the Widget to be rebuilt, but the onInit method should NOT be
+      // called a second time.
+      expect(numBuilds, 2);
+      expect(onInit.callCount, 1);
+
+      store.dispatch("just to be sure");
+
+      // Rebuild the widget
+      await tester.pumpWidget(widget());
+
+      // Expect the Widget to be rebuilt, but the onInit method should NOT be
+      // called a third time.
+      expect(numBuilds, 3);
+      expect(onInit.callCount, 1);
+    });
+
+    testWidgets('StoreBuilder also runs a function when initialized',
+        (WidgetTester tester) async {
+      var numBuilds = 0;
+      final action = "action";
+      final onInit = new OnInitCounter();
+      final store = new Store(
+        new IdentityReducer(),
+        initialState: action,
+      );
+      final widget = () => new StoreProvider(
+        store: store,
+        child: new StoreBuilder(
+          onInit: onInit,
+          builder: (context, store) {
+            numBuilds++;
+
+            return new Container();
+          },
+        ),
+      );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget());
+
+      // Expect the Widget to be rebuilt and the onInit method to be called
+      expect(onInit.callCount, 1);
+      expect(numBuilds, 1);
+
+      store.dispatch(action);
+
+      // Rebuild the widget
+      await tester.pumpWidget(widget());
+
+      // Expect the Widget to be rebuilt, but the onInit method should NOT be
+      // called a second time.
+      expect(numBuilds, 2);
+      expect(onInit.callCount, 1);
+
+      store.dispatch("just to be sure");
+
+      // Rebuild the widget
+      await tester.pumpWidget(widget());
+
+      // Expect the Widget to be rebuilt, but the onInit method should NOT be
+      // called a third time.
+      expect(numBuilds, 3);
+      expect(onInit.callCount, 1);
+    });
   });
 }
 
@@ -243,4 +401,19 @@ class StoreCaptor<S, A> extends StatelessWidget {
 
     return new Container();
   }
+}
+
+class IdentityReducer extends ReducerClass {
+  @override
+  dynamic call(state, action) {
+    return action;
+  }
+}
+
+class OnInitCounter {
+  final List<Store> stores = [];
+
+  int get callCount => stores.length;
+
+  void call(Store store) => stores.add(store);
 }

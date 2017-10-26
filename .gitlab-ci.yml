@@ -3,7 +3,7 @@ stages:
   - deploy
 
 unit_test:
-  image: brianegan/flutter:v7
+  image: brianegan/flutter_lcov:v9
   stage: test
   script:
     - flutter test --coverage
