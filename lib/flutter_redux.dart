@@ -30,23 +30,39 @@ class StoreProvider<S> extends InheritedWidget {
 
 /// Build a Widget using the [BuildContext] and [ViewModel]. The [ViewModel] is
 /// derived from the [Store] using a [StoreConverter].
-typedef Widget ViewModelBuilder<ViewModel>(
+typedef ViewModelBuilder<ViewModel> = Widget Function(
   BuildContext context,
   ViewModel vm,
 );
 
 /// Convert the entire [Store] into a [ViewModel]. The [ViewModel] will be used
 /// to build a Widget using the [ViewModelBuilder].
-typedef ViewModel StoreConverter<S, ViewModel>(
+typedef StoreConverter<S, ViewModel> = ViewModel Function(
   Store<S> store,
 );
 
 /// A function that will be run when the [StoreConnector] is initialized (using
 /// the [State.initState] method). This can be useful for dispatching actions
 /// that fetch data for your Widget when it is first displayed.
-typedef void OnInitCallback<S>(
+typedef OnInitCallback<S> = void Function(
   Store<S> store,
 );
+
+/// A test of whether or not your `converter` function should run in response
+/// to a State change. For advanced use only.
+///
+/// Some changes to the State of your application will mean your `converter`
+/// function can't produce a useful ViewModel. In these cases, such as when
+/// performing exit animations on data that has been removed from your Store,
+/// it can be best to ignore the State change while your animation completes.
+///
+/// To ignore a change, provide a function that returns true or false. If the
+/// returned value is false, the change will be ignored.
+///
+/// If you ignore a change, and the framework needs to rebuild the Widget, the
+/// `builder` function will be called with the latest `ViewModel` produced by
+/// your `converter` function.
+typedef IgnoreChangeTest<S> = bool Function(S state);
 
 /// Build a widget based on the state of the [Store].
 ///
@@ -84,21 +100,21 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// onChange event.
   final bool rebuildOnChange;
 
-  /// For the special use case of running animations while removing items from
-  /// your Store. When your [converter] runs and produces a Null value in
-  /// response to a State change, you might not want to rebuild the Widget.
-  /// To do so, set [rebuildNullViewModels] to false.
+  /// A test of whether or not your [converter] function should run in response
+  /// to a State change. For advanced use only.
   ///
-  /// Example Use case:
+  /// Some changes to the State of your application will mean your [converter]
+  /// function can't produce a useful ViewModel. In these cases, such as when
+  /// performing exit animations on data that has been removed from your Store,
+  /// it can be best to ignore the State change while your animation completes.
   ///
-  /// Say you want to delete an Item from your Store. The new value from the
-  /// Store will be immediately pushed and rendered. Yay! The Item is now
-  /// removed. But wait, it was animating off screen! NullPointerException Red
-  /// boxes appear everywhere!
+  /// To ignore a change, provide a function that returns true or false. If the
+  /// returned value is false, the change will be ignored.
   ///
-  /// In this case, you can return a null value from your converter. If you do
-  /// so, the widget will not be rebuilt.
-  final bool rebuildNullViewModels;
+  /// If you ignore a change, and the framework needs to rebuild the Widget, the
+  /// [builder] function will be called with the latest [ViewModel] produced by
+  /// your [converter] function.
+  final IgnoreChangeTest<S> ignoreChange;
 
   StoreConnector({
     Key key,
@@ -107,7 +123,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
     this.distinct = false,
     this.onInit,
     this.rebuildOnChange = true,
-    this.rebuildNullViewModels = true,
+    this.ignoreChange,
   })
       : assert(builder != null),
         assert(converter != null),
@@ -121,7 +137,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
         distinct: distinct,
         onInit: onInit,
         rebuildOnChange: rebuildOnChange,
-        rebuildNullViewModels: rebuildNullViewModels,
+        ignoreChange: ignoreChange,
       );
 }
 
@@ -173,8 +189,8 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
   final Store<S> store;
   final bool rebuildOnChange;
   final bool distinct;
-  final bool rebuildNullViewModels;
   final OnInitCallback onInit;
+  final IgnoreChangeTest ignoreChange;
 
   _StoreStreamListener._({
     Key key,
@@ -184,7 +200,7 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
     this.distinct = false,
     this.onInit,
     this.rebuildOnChange = true,
-    this.rebuildNullViewModels = true,
+    this.ignoreChange,
   })
       : super(key: key);
 
@@ -196,7 +212,7 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
     bool distinct = false,
     OnInitCallback onInit,
     bool rebuildOnChange = true,
-    bool rebuildNullViewModels = true,
+    IgnoreChangeTest ignoreChange,
   }) {
     return new _StoreStreamListener._(
       builder: builder,
@@ -206,7 +222,7 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
       rebuildOnChange: rebuildOnChange,
       onInit: onInit,
       distinct: distinct,
-      rebuildNullViewModels: rebuildNullViewModels,
+      ignoreChange: ignoreChange,
     );
   }
 
@@ -222,8 +238,29 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
 
   @override
   void initState() {
-    stream = widget.store.onChange.map((_) => widget.converter(widget.store));
+    _init();
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(_StoreStreamListener oldWidget) {
+    if (widget.store != oldWidget.store) {
+      _init();
+    }
+
+    super.didUpdateWidget(oldWidget);
+  }
+
+  void _init() {
     latestValue = widget.converter(widget.store);
+
+    stream = widget.store.onChange;
+
+    if (widget.ignoreChange != null) {
+      stream = stream.where((state) => !widget.ignoreChange(state));
+    }
+
+    stream = stream.map((_) => widget.converter(widget.store));
 
     // Don't use `Stream.distinct` because it cannot capture the initial
     // ViewModel produced by the `converter`.
@@ -235,15 +272,9 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
       });
     }
 
-    if (!widget.rebuildNullViewModels) {
-      stream = stream.where((item) {
-        return item != null;
-      });
-    }
-
-    // Poor man's doOnNext. After each ViewModel is emitted from the Stream, we
-    // update the latestValue. Important: This must be done after all other
-    // optional transformations, such as distinct or rebuildNullViewModels.
+    // After each ViewModel is emitted from the Stream, we update the
+    // latestValue. Important: This must be done after all other optional
+    // transformations, such as ignoreChange.
     stream = stream
         .transform(new StreamTransformer.fromHandlers(handleData: (vm, sink) {
       latestValue = vm;
@@ -253,8 +284,6 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
     if (widget.onInit != null) {
       widget.onInit(widget.store);
     }
-
-    super.initState();
   }
 
   @override

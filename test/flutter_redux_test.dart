@@ -118,10 +118,12 @@ void main() {
       final widget = new StoreProvider(
         store: store,
         child: new StoreBuilder(
-          builder: (context, store) => new Text(
+          builder: (context, store) {
+            return new Text(
                 store.state,
                 textDirection: TextDirection.ltr,
-              ),
+              );
+          },
         ),
       );
 
@@ -208,7 +210,7 @@ void main() {
       expect(numBuilds, 1);
     });
 
-    testWidgets('does not rebuild if rebuildOnNull is set to false',
+    testWidgets('does not rebuild if ignoreChange returns true',
         (WidgetTester tester) async {
       var numBuilds = 0;
       final initial = "initial";
@@ -219,8 +221,8 @@ void main() {
       final widget = new StoreProvider(
         store: store,
         child: new StoreConnector(
+          ignoreChange: (dynamic state) => state == null,
           converter: (store) => store.state,
-          rebuildNullViewModels: false,
           builder: (context, latest) {
             numBuilds++;
 
