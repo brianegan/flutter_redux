@@ -11,7 +11,12 @@ This package is built to work with [Redux.dart](https://pub.dartlang.org/package
   * `StoreProvider` - The base Widget. It will pass the given Redux Store to all descendants that request it.
   * `StoreBuilder` - A descendant Widget that gets the Store from a `StoreProvider` and passes it to a Widget `builder` function.
   * `StoreConnector` - A descendant Widget that gets the Store from the nearest `StoreProvider` ancestor, converts the `Store` into a `ViewModel` with the given `converter` function, and passes the `ViewModel` to a `builder` function. Any time the Store emits a change event, the Widget will automatically be rebuilt. No need to manage subscriptions!
+  
+## Examples
 
+  * [Simple example](https://gitlab.com/brianegan/flutter_redux/tree/master/example) - a port of the standard "Counter Button" example from Flutter
+  * [Todo app](https://gitlab.com/brianegan/flutter_architecture_samples/tree/master/example/redux) - a more complete example, with persistence, routing, and nested state.   
+ 
 ## Usage
 
 Let's demo the basic usage with the all-time favorite: A counter example!
