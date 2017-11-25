@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.3.3
+
+  * Optional `onDispose` function - The `StoreConnector` and `StoreBuilder` Widgets now accept an `onDispose` function that will be run when the Widget is removed from the Widget tree (using State.initState under the hood). The `onInit` function takes the Store as the first parameter, and can be used to dispatch actions when your Widget is first starting up. This can be useful for data fetching.
+  * Move to github
+
 ## 0.3.2
 
-  * Optional `onInit` function - The `StoreConnector` and `StoreBuilder` Widgets now accept an `onInit` function that will be run the first time the Widget is created (using Store.initState under the hood). The `onInit` function takes the Store as the first parameter, and can be used to dispatch actions when your Widget is first starting up. This can be useful for data fetching.
+  * Optional `onInit` function - The `StoreConnector` and `StoreBuilder` Widgets now accept an `onInit` function that will be run the first time the Widget is created (using State.initState under the hood). The `onInit` function takes the Store as the first parameter, and can be used to dispatch actions when your Widget is first starting up. This can be useful for data fetching.
   * `ignoreChange` function - `StoreConnector` now takes an advanced usage / optional function `ignoreChange`. It will be run on every store `onChange` event to determine whether or not the `ViewModel` and `Widget` should be rebuilt. This can be useful in some edge cases, such as displaying information that has been deleted from the store while it is animating off screen. 
   * Documentation updates
 

@@ -46,27 +46,6 @@ void main() {
 
       expect(captor.store.state, newState);
     });
-
-    testWidgets('can run a function on Init', (WidgetTester tester) async {
-      final defaultState = "test";
-      final newState = "new";
-      Widget widget([String state]) {
-        return new StoreProvider(
-          store: new Store(
-            new IdentityReducer(),
-            initialState: state,
-          ),
-          child: new StoreCaptor(),
-        );
-      }
-
-      await tester.pumpWidget(widget(defaultState));
-      await tester.pumpWidget(widget(newState));
-
-      StoreCaptor captor = tester.firstWidget(find.byType(StoreCaptor));
-
-      expect(captor.store.state, newState);
-    });
   });
 
   group('StoreConnector', () {
@@ -120,9 +99,9 @@ void main() {
         child: new StoreBuilder(
           builder: (context, store) {
             return new Text(
-                store.state,
-                textDirection: TextDirection.ltr,
-              );
+              store.state,
+              textDirection: TextDirection.ltr,
+            );
           },
         ),
       );
@@ -250,7 +229,7 @@ void main() {
         (WidgetTester tester) async {
       var numBuilds = 0;
       final action = "action";
-      final onInit = new OnInitCounter();
+      final onInit = new StoreCounter();
       final store = new Store(
         new IdentityReducer(),
         initialState: action,
@@ -295,11 +274,41 @@ void main() {
       expect(onInit.callCount, 1);
     });
 
+    testWidgets('StoreBuilder also runs a function when disposed',
+        (WidgetTester tester) async {
+      final action = "action";
+      final onDispose = new StoreCounter();
+      final store = new Store(
+        new IdentityReducer(),
+        initialState: action,
+      );
+      final widget = () => new StoreProvider(
+            store: store,
+            child: new StoreBuilder(
+              onDispose: onDispose,
+              builder: (context, store) => new Container(),
+            ),
+          );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget());
+
+      expect(onDispose.callCount, 0);
+
+      store.dispatch(action);
+
+      // Rebuild a different widget, should trigger a dispose as the
+      // StoreBuilder has been removed from the Widget tree.
+      await tester.pumpWidget(new Container());
+
+      expect(onDispose.callCount, 1);
+    });
+
     testWidgets('optionally runs a function when the State is initialized',
         (WidgetTester tester) async {
       var numBuilds = 0;
       final action = "action";
-      final onInit = new OnInitCounter();
+      final onInit = new StoreCounter();
       final store = new Store(
         new IdentityReducer(),
         initialState: action,
@@ -343,6 +352,37 @@ void main() {
       // called a third time.
       expect(numBuilds, 3);
       expect(onInit.callCount, 1);
+    });
+
+    testWidgets('optionally runs a function when the State is disposed',
+        (WidgetTester tester) async {
+      final action = "action";
+      final onDispose = new StoreCounter();
+      final store = new Store(
+        new IdentityReducer(),
+        initialState: action,
+      );
+      final widget = () => new StoreProvider(
+            store: store,
+            child: new StoreConnector(
+              onDispose: onDispose,
+              converter: (store) => store.state,
+              builder: (context, latest) => new Container(),
+            ),
+          );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget());
+
+      // onDispose should not be called yet.
+      expect(onDispose.callCount, 0);
+
+      store.dispatch(action);
+
+      // Rebuild a different widget tree. Expect this to trigger `onDispose`.
+      await tester.pumpWidget(new Container());
+
+      expect(onDispose.callCount, 1);
     });
 
     testWidgets(
@@ -412,7 +452,7 @@ class IdentityReducer extends ReducerClass {
   }
 }
 
-class OnInitCounter {
+class StoreCounter {
   final List<Store> stores = [];
 
   int get callCount => stores.length;

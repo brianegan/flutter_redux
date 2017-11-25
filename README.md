@@ -1,6 +1,6 @@
 # flutter_redux
 
-[![build status](https://gitlab.com/brianegan/flutter_redux/badges/master/build.svg)](https://gitlab.com/brianegan/flutter_redux/commits/master)  [![coverage report](https://gitlab.com/brianegan/flutter_redux/badges/master/coverage.svg)](https://brianegan.gitlab.io/flutter_redux/coverage/)
+[![Build Status](https://travis-ci.org/brianegan/flutter_redux.svg?branch=master)](https://travis-ci.org/brianegan/flutter_redux)  [![codecov](https://codecov.io/gh/brianegan/flutter_redux/branch/master/graph/badge.svg)](https://codecov.io/gh/brianegan/flutter_redux)
 
 A set of utilities that allow you to easily consume a [Redux](https://pub.dartlang.org/packages/redux) Store to build Flutter Widgets.
 
