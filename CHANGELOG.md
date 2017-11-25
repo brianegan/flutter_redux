@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.3.4
+
+  * Fix Changelog. 
+
 ## 0.3.3
 
-  * Optional `onDispose` function - The `StoreConnector` and `StoreBuilder` Widgets now accept an `onDispose` function that will be run when the Widget is removed from the Widget tree (using State.initState under the hood). The `onInit` function takes the Store as the first parameter, and can be used to dispatch actions when your Widget is first starting up. This can be useful for data fetching.
+  * Optional `onDispose` function - The `StoreConnector` and `StoreBuilder` Widgets now accept an `onDispose` function that will be run when the Widget is removed from the Widget tree (using State.dispose under the hood). The `onDispose` function takes the Store as the first parameter, and can be used to dispatch actions that remove stale data from your State tree.
   * Move to github
 
 ## 0.3.2
