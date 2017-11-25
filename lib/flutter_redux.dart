@@ -48,6 +48,17 @@ typedef OnInitCallback<S> = void Function(
   Store<S> store,
 );
 
+/// A function that will be run when the StoreConnector is removed from the
+/// Widget Tree.
+///
+/// It is run in the [State.dispose] method.
+///
+/// This can be useful for dispatching actions that remove stale data from
+/// your State tree.
+typedef OnDisposeCallback<S> = void Function(
+  Store<S> store,
+);
+
 /// A test of whether or not your `converter` function should run in response
 /// to a State change. For advanced use only.
 ///
@@ -96,6 +107,15 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// when it is first displayed.
   final OnInitCallback onInit;
 
+  /// A function that will be run when the StoreConnector is removed from the
+  /// Widget Tree.
+  ///
+  /// It is run in the [State.dispose] method.
+  ///
+  /// This can be useful for dispatching actions that remove stale data from
+  /// your State tree.
+  final OnDisposeCallback onDispose;
+
   /// Determines whether the Widget should be rebuilt when the Store emits an
   /// onChange event.
   final bool rebuildOnChange;
@@ -122,6 +142,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
     @required this.converter,
     this.distinct = false,
     this.onInit,
+    this.onDispose,
     this.rebuildOnChange = true,
     this.ignoreChange,
   })
@@ -130,15 +151,18 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
         super(key: key);
 
   @override
-  Widget build(BuildContext context) => new _StoreStreamListener<S, ViewModel>(
-        store: new StoreProvider.of(context).store,
-        builder: builder,
-        converter: converter,
-        distinct: distinct,
-        onInit: onInit,
-        rebuildOnChange: rebuildOnChange,
-        ignoreChange: ignoreChange,
-      );
+  Widget build(BuildContext context) {
+    return new _StoreStreamListener<S, ViewModel>(
+      store: new StoreProvider.of(context).store,
+      builder: builder,
+      converter: converter,
+      distinct: distinct,
+      onInit: onInit,
+      onDispose: onDispose,
+      rebuildOnChange: rebuildOnChange,
+      ignoreChange: ignoreChange,
+    );
+  }
 }
 
 /// Build a Widget by passing the [Store] directly to the build function.
@@ -164,22 +188,35 @@ class StoreBuilder<S> extends StatelessWidget {
   /// when it is first displayed.
   final OnInitCallback onInit;
 
+  /// A function that will be run when the StoreBuilder is removed from the
+  /// Widget Tree.
+  ///
+  /// It is run in the [State.dispose] method.
+  ///
+  /// This can be useful for dispatching actions that remove stale data from
+  /// your State tree.
+  final OnDisposeCallback onDispose;
+
   StoreBuilder({
     Key key,
     @required this.builder,
     this.onInit,
+    this.onDispose,
     this.rebuildOnChange = true,
   })
       : assert(builder != null),
         super(key: key);
 
   @override
-  Widget build(BuildContext context) => new StoreConnector<S, Store<S>>(
-        builder: builder,
-        converter: _identity,
-        rebuildOnChange: rebuildOnChange,
-        onInit: onInit,
-      );
+  Widget build(BuildContext context) {
+    return new StoreConnector<S, Store<S>>(
+      builder: builder,
+      converter: _identity,
+      rebuildOnChange: rebuildOnChange,
+      onInit: onInit,
+      onDispose: onDispose,
+    );
+  }
 }
 
 /// Listens to the [Store] and calls [builder] whenever [store] changes.
@@ -190,41 +227,21 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
   final bool rebuildOnChange;
   final bool distinct;
   final OnInitCallback onInit;
+  final OnDisposeCallback onDispose;
   final IgnoreChangeTest ignoreChange;
 
-  _StoreStreamListener._({
+  _StoreStreamListener({
     Key key,
     @required this.builder,
     @required this.store,
     @required this.converter,
     this.distinct = false,
     this.onInit,
+    this.onDispose,
     this.rebuildOnChange = true,
     this.ignoreChange,
   })
       : super(key: key);
-
-  factory _StoreStreamListener({
-    Key key,
-    @required Store<S> store,
-    @required StoreConverter<S, ViewModel> converter,
-    @required ViewModelBuilder<ViewModel> builder,
-    bool distinct = false,
-    OnInitCallback onInit,
-    bool rebuildOnChange = true,
-    IgnoreChangeTest ignoreChange,
-  }) {
-    return new _StoreStreamListener._(
-      builder: builder,
-      converter: converter,
-      store: store,
-      key: key,
-      rebuildOnChange: rebuildOnChange,
-      onInit: onInit,
-      distinct: distinct,
-      ignoreChange: ignoreChange,
-    );
-  }
 
   @override
   State<StatefulWidget> createState() {
@@ -240,6 +257,15 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
   void initState() {
     _init();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (widget.onDispose != null) {
+      widget.onDispose(widget.store);
+    }
+
+    super.dispose();
   }
 
   @override
