@@ -4,8 +4,7 @@
 
 A set of utilities that allow you to easily consume a [Redux](https://pub.dartlang.org/packages/redux) Store to build Flutter Widgets.
 
-This package is built to work with [Redux.dart](https://pub.dartlang.org/packages/redux). If you use Greencat, check out [flutter_greencat](https://pub.dartlang.org/packages/flutter_greencat). 
-
+This package is built to work with [Redux.dart](https://pub.dartlang.org/packages/redux). 
 ## Redux Widgets 
 
   * `StoreProvider` - The base Widget. It will pass the given Redux Store to all descendants that request it.
