@@ -22,7 +22,7 @@ void main() {
 class FlutterReduxApp extends StatelessWidget {
   // Create your store as a final variable in a base Widget. This works better
   // with Hot Reload than creating it directly in the `build` function.
-  final store = new Store(counterReducer, initialState: 0);
+  final store = new Store<int>(counterReducer, initialState: 0);
 
   @override
   Widget build(BuildContext context) {
