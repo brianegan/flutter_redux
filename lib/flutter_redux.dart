@@ -228,7 +228,7 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
   final bool distinct;
   final OnInitCallback onInit;
   final OnDisposeCallback onDispose;
-  final IgnoreChangeTest ignoreChange;
+  final IgnoreChangeTest<S> ignoreChange;
 
   _StoreStreamListener({
     Key key,
@@ -255,7 +255,12 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
 
   @override
   void initState() {
+    if (widget.onInit != null) {
+      widget.onInit(widget.store);
+    }
+
     _init();
+
     super.initState();
   }
 
@@ -306,10 +311,6 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
       latestValue = vm;
       sink.add(vm);
     }));
-
-    if (widget.onInit != null) {
-      widget.onInit(widget.store);
-    }
   }
 
   @override

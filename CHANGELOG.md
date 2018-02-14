@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.5
+
+  * Bugfix: `onInit` was not called before the initial ViewModel is constructed. 
+
 ## 0.3.4
 
   * Fix Changelog. 
