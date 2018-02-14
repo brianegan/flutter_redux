@@ -7,7 +7,7 @@ enum Actions { Increment }
 
 // The reducer, which takes the previous count and increments it in response
 // to an Increment action.
-int counterReducer(int state, action) {
+int counterReducer(int state, dynamic action) {
   if (action == Actions.Increment) {
     return state + 1;
   }
@@ -16,14 +16,23 @@ int counterReducer(int state, action) {
 }
 
 void main() {
-  runApp(new FlutterReduxApp());
-}
-
-class FlutterReduxApp extends StatelessWidget {
   // Create your store as a final variable in a base Widget. This works better
   // with Hot Reload than creating it directly in the `build` function.
   final store = new Store<int>(counterReducer, initialState: 0);
 
+  runApp(new FlutterReduxApp(store: store));
+}
+
+class FlutterReduxApp extends StatefulWidget {
+  final Store<int> store;
+
+  FlutterReduxApp({Key key, this.store}) : super(key: key);
+
+  @override
+  _FlutterReduxAppState createState() => new _FlutterReduxAppState();
+}
+
+class _FlutterReduxAppState extends State<FlutterReduxApp> {
   @override
   Widget build(BuildContext context) {
     final title = 'Flutter Redux Demo';
@@ -34,7 +43,7 @@ class FlutterReduxApp extends StatelessWidget {
       home: new StoreProvider(
         // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
         // Widgets will find and use this value as the `Store`.
-        store: store,
+        store: widget.store,
         child: new Scaffold(
           appBar: new AppBar(
             title: new Text(title),
