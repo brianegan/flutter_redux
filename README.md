@@ -55,7 +55,7 @@ class FlutterReduxApp extends StatelessWidget {
       theme: new ThemeData.dark(),
       title: title,
       home: new StoreProvider(
-        // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
+        // Pass the store to the StoreProvider. Any descendant `StoreConnector`
         // Widgets will find and use this value as the `Store`.
         store: store,
         child: new Scaffold(
