@@ -5,13 +5,18 @@
 A set of utilities that allow you to easily consume a [Redux](https://pub.dartlang.org/packages/redux) Store to build Flutter Widgets.
 
 This package is built to work with [Redux.dart](https://pub.dartlang.org/packages/redux).
- 
+
 ## Redux Widgets 
 
   * `StoreProvider` - The base Widget. It will pass the given Redux Store to all descendants that request it.
   * `StoreBuilder` - A descendant Widget that gets the Store from a `StoreProvider` and passes it to a Widget `builder` function.
   * `StoreConnector` - A descendant Widget that gets the Store from the nearest `StoreProvider` ancestor, converts the `Store` into a `ViewModel` with the given `converter` function, and passes the `ViewModel` to a `builder` function. Any time the Store emits a change event, the Widget will automatically be rebuilt. No need to manage subscriptions!
   
+## Dart Support
+
+  * Dart 1: 0.3.x
+  * Dart 2: 0.4.0+. See the migration guide below!
+
 ## Examples
 
   * [Simple example](https://gitlab.com/brianegan/flutter_redux/tree/master/example) - a port of the standard "Counter Button" example from Flutter
@@ -26,17 +31,19 @@ This package is built to work with [Redux.dart](https://pub.dartlang.org/package
 
 Let's demo the basic usage with the all-time favorite: A counter example!
 
+Note: This example requires flutter_redux 0.4.0+ and Dart 2! If you're using Dart 1, [see the old example](https://github.com/brianegan/flutter_redux/blob/eb4289795a5a70517686ccd1d161abdb8cc08af5/example/lib/main.dart).
+
 ```dart
 import 'package:flutter/material.dart';
-import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 
 // One simple action: Increment
 enum Actions { Increment }
 
 // The reducer, which takes the previous count and increments it in response
 // to an Increment action.
-int counterReducer(int state, action) {
+int counterReducer(int state, dynamic action) {
   if (action == Actions.Increment) {
     return state + 1;
   }
@@ -45,34 +52,40 @@ int counterReducer(int state, action) {
 }
 
 void main() {
-  runApp(new FlutterReduxApp());
+  // Create your store as a final variable in a base Widget. This works better
+  // with Hot Reload than creating it directly in the `build` function.
+  final store = Store<int>(counterReducer, initialState: 0);
+
+  runApp(FlutterReduxApp(
+    title: 'Flutter Redux Demo',
+    store: store,
+  ));
 }
 
 class FlutterReduxApp extends StatelessWidget {
-  // Create your store as a final variable in a base Widget. This works better
-  // with Hot Reload than creating it directly in the `build` function.
-  final store = new Store(counterReducer, initialState: 0);
+  final Store<int> store;
+  final String title;
+
+  FlutterReduxApp({Key key, this.store, this.title}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final title = 'Flutter Redux Demo';
-
-    return new MaterialApp(
-      theme: new ThemeData.dark(),
+    return MaterialApp(
+      theme: ThemeData.dark(),
       title: title,
-      home: new StoreProvider(
-        // Pass the store to the StoreProvider. Any descendant `StoreConnector`
+      home: StoreProvider<int>(
+        // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
         // Widgets will find and use this value as the `Store`.
         store: store,
-        child: new Scaffold(
-          appBar: new AppBar(
-            title: new Text(title),
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(title),
           ),
-          body: new Center(
-            child: new Column(
+          body: Center(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                new Text(
+                Text(
                   'You have pushed the button this many times:',
                 ),
                 // Connect the Store to a Text Widget that renders the current
@@ -90,7 +103,7 @@ class FlutterReduxApp extends StatelessWidget {
                 // count. No need to manually manage subscriptions or Streams!
                 new StoreConnector<int, String>(
                   converter: (store) => store.state.toString(),
-                  builder: (context, count) => new Text(
+                  builder: (context, count) => Text(
                         count,
                         style: Theme.of(context).textTheme.display1,
                       ),
@@ -109,11 +122,11 @@ class FlutterReduxApp extends StatelessWidget {
               // with no parameters. It only dispatches an Increment action.
               return () => store.dispatch(Actions.Increment);
             },
-            builder: (context, callback) => new FloatingActionButton(
+            builder: (context, callback) => FloatingActionButton(
                   // Attach the `callback` to the `onPressed` attribute
                   onPressed: callback,
                   tooltip: 'Increment',
-                  child: new Icon(Icons.add),
+                  child: Icon(Icons.add),
                 ),
           ),
         ),
@@ -123,7 +136,14 @@ class FlutterReduxApp extends StatelessWidget {
 }
 ```  
 
-### Purpose
+## Dart 2 Migration
+
+Dart 2 requires more strict typing (yay!), and gives us the option to make getting the Store from the StoreProvider more convenient!
+
+  1. Change `new StoreProvider(...)` to `StoreProvider<StateClass>(...)` in your Widget tree. 
+  2. Change `new StoreProvider.of(context).store` to `StoreProvider.of<StateClass>(context)` if you're directly fetching the `Store<AppState>` yourself from the `StoreProvider<AppState>`. No need to access the `store` field directly any more since Dart 2 can now infer the proper type with a static function :)  
+
+## Purpose
 
 One question that [reasonable people might ask](https://www.reddit.com/r/FlutterDev/comments/6vscdy/a_set_of_utilities_that_allow_you_to_easily/dm3ll7d/): Why do you need all of this if `StatefulWidget` exists?
 

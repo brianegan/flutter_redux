@@ -10,22 +10,30 @@ import 'package:redux/redux.dart';
 /// generally be a root widget in your App. Connect to the Store provided
 /// by this Widget using a [StoreConnector] or [StoreBuilder].
 class StoreProvider<S> extends InheritedWidget {
-  final Store<S> store;
+  final Store<S> _store;
 
   const StoreProvider({
     Key key,
-    @required this.store,
+    @required Store<S> store,
     @required Widget child,
   })
       : assert(store != null),
         assert(child != null),
+        _store = store,
         super(key: key, child: child);
 
-  factory StoreProvider.of(BuildContext context) =>
-      context.inheritFromWidgetOfExactType(StoreProvider);
+  static Store<S> of<S>(BuildContext context) {
+    final StoreProvider<S> provider =
+        context.inheritFromWidgetOfExactType(_typeOf<StoreProvider<S>>());
+
+    return provider._store;
+  }
+
+  // Workaround to capture generics
+  static Type _typeOf<T>() => T;
 
   @override
-  bool updateShouldNotify(StoreProvider old) => store != old.store;
+  bool updateShouldNotify(StoreProvider<S> old) => _store != old._store;
 }
 
 /// Build a Widget using the [BuildContext] and [ViewModel]. The [ViewModel] is
@@ -172,7 +180,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new _StoreStreamListener<S, ViewModel>(
-      store: new StoreProvider.of(context).store,
+      store: StoreProvider.of<S>(context),
       builder: builder,
       converter: converter,
       distinct: distinct,
@@ -275,11 +283,12 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return new _StoreStreamListenerState();
+    return new _StoreStreamListenerState<S, ViewModel>();
   }
 }
 
-class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
+class _StoreStreamListenerState<S, ViewModel>
+    extends State<_StoreStreamListener<S, ViewModel>> {
   Stream<ViewModel> stream;
   ViewModel latestValue;
 
@@ -304,7 +313,7 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
   }
 
   @override
-  void didUpdateWidget(_StoreStreamListener oldWidget) {
+  void didUpdateWidget(_StoreStreamListener<S, ViewModel> oldWidget) {
     if (widget.store != oldWidget.store) {
       _init();
     }
@@ -315,13 +324,13 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
   void _init() {
     latestValue = widget.converter(widget.store);
 
-    stream = widget.store.onChange;
+    Stream<S> _stream = widget.store.onChange;
 
     if (widget.ignoreChange != null) {
-      stream = stream.where((state) => !widget.ignoreChange(state));
+      _stream = _stream.where((state) => !widget.ignoreChange(state));
     }
 
-    stream = stream.map((_) => widget.converter(widget.store));
+    stream = _stream.map((_) => widget.converter(widget.store));
 
     // Don't use `Stream.distinct` because it cannot capture the initial
     // ViewModel produced by the `converter`.
@@ -351,7 +360,7 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
   @override
   Widget build(BuildContext context) {
     return widget.rebuildOnChange
-        ? new StreamBuilder(
+        ? new StreamBuilder<ViewModel>(
             stream: stream,
             builder: (context, snapshot) => widget.builder(
                   context,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 
 // One simple action: Increment
 enum Actions { Increment }
@@ -18,41 +18,38 @@ int counterReducer(int state, dynamic action) {
 void main() {
   // Create your store as a final variable in a base Widget. This works better
   // with Hot Reload than creating it directly in the `build` function.
-  final store = new Store<int>(counterReducer, initialState: 0);
+  final store = Store<int>(counterReducer, initialState: 0);
 
-  runApp(new FlutterReduxApp(store: store));
+  runApp(FlutterReduxApp(
+    title: 'Flutter Redux Demo',
+    store: store,
+  ));
 }
 
-class FlutterReduxApp extends StatefulWidget {
+class FlutterReduxApp extends StatelessWidget {
   final Store<int> store;
+  final String title;
 
-  FlutterReduxApp({Key key, this.store}) : super(key: key);
+  FlutterReduxApp({Key key, this.store, this.title}) : super(key: key);
 
-  @override
-  _FlutterReduxAppState createState() => new _FlutterReduxAppState();
-}
-
-class _FlutterReduxAppState extends State<FlutterReduxApp> {
   @override
   Widget build(BuildContext context) {
-    final title = 'Flutter Redux Demo';
-
-    return new MaterialApp(
-      theme: new ThemeData.dark(),
+    return MaterialApp(
+      theme: ThemeData.dark(),
       title: title,
-      home: new StoreProvider(
+      home: StoreProvider<int>(
         // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
         // Widgets will find and use this value as the `Store`.
-        store: widget.store,
-        child: new Scaffold(
-          appBar: new AppBar(
-            title: new Text(title),
+        store: store,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(title),
           ),
-          body: new Center(
-            child: new Column(
+          body: Center(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                new Text(
+                Text(
                   'You have pushed the button this many times:',
                 ),
                 // Connect the Store to a Text Widget that renders the current
@@ -70,7 +67,7 @@ class _FlutterReduxAppState extends State<FlutterReduxApp> {
                 // count. No need to manually manage subscriptions or Streams!
                 new StoreConnector<int, String>(
                   converter: (store) => store.state.toString(),
-                  builder: (context, count) => new Text(
+                  builder: (context, count) => Text(
                         count,
                         style: Theme.of(context).textTheme.display1,
                       ),
@@ -89,11 +86,11 @@ class _FlutterReduxAppState extends State<FlutterReduxApp> {
               // with no parameters. It only dispatches an Increment action.
               return () => store.dispatch(Actions.Increment);
             },
-            builder: (context, callback) => new FloatingActionButton(
+            builder: (context, callback) => FloatingActionButton(
                   // Attach the `callback` to the `onPressed` attribute
                   onPressed: callback,
                   tooltip: 'Increment',
-                  child: new Icon(Icons.add),
+                  child: Icon(Icons.add),
                 ),
           ),
         ),
