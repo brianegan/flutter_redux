@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 
 // One simple action: Increment
 enum Actions { Increment }
@@ -15,10 +15,31 @@ int counterReducer(int state, dynamic action) {
   return state;
 }
 
+final navigatorKey = new GlobalKey<NavigatorState>();
+
+void navigationMiddleware(
+  Store<int> store,
+  dynamic action,
+  NextDispatcher next,
+) {
+  next(action);
+
+  if (action is NavigateAction) {
+    navigatorKey.currentState.push(new MaterialPageRoute(builder: (context) {
+      return new Scaffold(
+        appBar: new AppBar(
+          title: new Text("New Route"),
+        ),
+      );
+    }));
+  }
+}
+
 void main() {
   // Create your store as a final variable in a base Widget. This works better
   // with Hot Reload than creating it directly in the `build` function.
-  final store = new Store<int>(counterReducer, initialState: 0);
+  final store = new Store<int>(counterReducer,
+      initialState: 0, middleware: [navigationMiddleware]);
 
   runApp(new FlutterReduxApp(store: store));
 }
@@ -40,6 +61,7 @@ class _FlutterReduxAppState extends State<FlutterReduxApp> {
     return new MaterialApp(
       theme: new ThemeData.dark(),
       title: title,
+      navigatorKey: navigatorKey,
       home: new StoreProvider(
         // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
         // Widgets will find and use this value as the `Store`.
@@ -74,6 +96,12 @@ class _FlutterReduxAppState extends State<FlutterReduxApp> {
                         count,
                         style: Theme.of(context).textTheme.display1,
                       ),
+                ),
+                new RaisedButton(
+                  child: new Text("Launch new screen"),
+                  onPressed: () {
+                    widget.store.dispatch(new NavigateAction());
+                  },
                 )
               ],
             ),
@@ -101,3 +129,5 @@ class _FlutterReduxAppState extends State<FlutterReduxApp> {
     );
   }
 }
+
+class NavigateAction {}
