@@ -4,7 +4,8 @@
 
 A set of utilities that allow you to easily consume a [Redux](https://pub.dartlang.org/packages/redux) Store to build Flutter Widgets.
 
-This package is built to work with [Redux.dart](https://pub.dartlang.org/packages/redux). 
+This package is built to work with [Redux.dart](https://pub.dartlang.org/packages/redux).
+ 
 ## Redux Widgets 
 
   * `StoreProvider` - The base Widget. It will pass the given Redux Store to all descendants that request it.
@@ -14,7 +15,12 @@ This package is built to work with [Redux.dart](https://pub.dartlang.org/package
 ## Examples
 
   * [Simple example](https://gitlab.com/brianegan/flutter_redux/tree/master/example) - a port of the standard "Counter Button" example from Flutter
-  * [Todo app](https://gitlab.com/brianegan/flutter_architecture_samples/tree/master/example/redux) - a more complete example, with persistence, routing, and nested state.   
+  * [Todo app](https://gitlab.com/brianegan/flutter_architecture_samples/tree/master/example/redux) - a more complete example, with persistence, routing, and nested state.
+  
+### Companion Libraries
+
+  * [flutter_redux_dev_tools](https://pub.dartlang.org/packages/flutter_redux_dev_tools) - Time Travel Dev Tools for Flutter Redux apps
+  * [redux_persist](https://github.com/Cretezy/redux_persist) - Persist Redux State   
  
 ## Usage
 
