@@ -294,6 +294,33 @@ void main() {
       expect(currentState, "A");
     });
 
+    testWidgets('optionally runs a function before rebuild',
+        (WidgetTester tester) async {
+      final counter =  new CallCounter();
+      final store = new Store (
+        new IdentityReducer(),
+        initialState: "A"
+      );
+
+      final widget = () => new StoreProvider(
+        store: store,
+        child: new StoreConnector(
+            onWillChange: counter,
+            converter: (store) => store.state,
+            builder:  (context, latest) => new Container(),
+        ),
+      );
+
+      await tester.pumpWidget(widget());
+
+      expect(counter.callCount, 0);
+
+      store.dispatch("A");
+      await tester.pumpWidget(widget());
+
+      expect(counter.callCount, 1);
+    });
+
     testWidgets('optionally runs a function when disposed',
         (WidgetTester tester) async {
       final counter = new CallCounter();
@@ -371,6 +398,32 @@ void main() {
       expect(numBuilds, 3);
       expect(counter.callCount, 1);
     });
+
+    testWidgets('StoreBuilder also optionally runs a function before rebuild',
+            (WidgetTester tester) async {
+          final counter =  new CallCounter();
+          final store = new Store (
+              new IdentityReducer(),
+              initialState: "A"
+          );
+
+          final widget = () => new StoreProvider(
+            store: store,
+            child: new StoreBuilder(
+              onWillChange: counter,
+              builder:  (context, latest) => new Container(),
+            ),
+          );
+
+          await tester.pumpWidget(widget());
+
+          expect(counter.callCount, 0);
+
+          store.dispatch("A");
+          await tester.pumpWidget(widget());
+
+          expect(counter.callCount, 1);
+        });
 
     testWidgets('StoreBuilder also runs a function when disposed',
         (WidgetTester tester) async {
@@ -467,10 +520,10 @@ class IdentityReducer extends ReducerClass {
   }
 }
 
-class CallCounter {
-  final List<Store> stores = [];
+class CallCounter<S> {
+  final List<S> states = [];
 
-  int get callCount => stores.length;
+  int get callCount => states.length;
 
-  void call(Store store) => stores.add(store);
+  void call(S state) => states.add(state);
 }
