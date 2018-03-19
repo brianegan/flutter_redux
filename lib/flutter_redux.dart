@@ -10,22 +10,29 @@ import 'package:redux/redux.dart';
 /// generally be a root widget in your App. Connect to the Store provided
 /// by this Widget using a [StoreConnector] or [StoreBuilder].
 class StoreProvider<S> extends InheritedWidget {
-  final Store<S> store;
+  final Store<S> _store;
 
   const StoreProvider({
     Key key,
-    @required this.store,
+    @required Store<S> store,
     @required Widget child,
-  })
-      : assert(store != null),
+  })  : assert(store != null),
         assert(child != null),
+        _store = store,
         super(key: key, child: child);
 
-  factory StoreProvider.of(BuildContext context) =>
-      context.inheritFromWidgetOfExactType(StoreProvider);
+  static Store<S> of<S>(BuildContext context) {
+    final StoreProvider<S> provider =
+        context.inheritFromWidgetOfExactType(_typeOf<StoreProvider<S>>());
+
+    return provider._store;
+  }
+
+  // Workaround to capture generics
+  static Type _typeOf<T>() => T;
 
   @override
-  bool updateShouldNotify(StoreProvider old) => store != old.store;
+  bool updateShouldNotify(StoreProvider<S> old) => _store != old._store;
 }
 
 /// Build a Widget using the [BuildContext] and [ViewModel]. The [ViewModel] is
@@ -114,7 +121,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   ///
   /// This can be useful for dispatching actions that fetch data for your Widget
   /// when it is first displayed.
-  final OnInitCallback onInit;
+  final OnInitCallback<S> onInit;
 
   /// A function that will be run when the StoreConnector is removed from the
   /// Widget Tree.
@@ -123,7 +130,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   ///
   /// This can be useful for dispatching actions that remove stale data from
   /// your State tree.
-  final OnDisposeCallback onDispose;
+  final OnDisposeCallback<S> onDispose;
 
   /// Determines whether the Widget should be rebuilt when the Store emits an
   /// onChange event.
@@ -164,15 +171,14 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
     this.rebuildOnChange = true,
     this.ignoreChange,
     this.onWillChange,
-  })
-      : assert(builder != null),
+  })  : assert(builder != null),
         assert(converter != null),
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return new _StoreStreamListener<S, ViewModel>(
-      store: new StoreProvider.of(context).store,
+      store: StoreProvider.of<S>(context),
       builder: builder,
       converter: converter,
       distinct: distinct,
@@ -206,7 +212,7 @@ class StoreBuilder<S> extends StatelessWidget {
   ///
   /// This can be useful for dispatching actions that fetch data for your Widget
   /// when it is first displayed.
-  final OnInitCallback onInit;
+  final OnInitCallback<S> onInit;
 
   /// A function that will be run when the StoreBuilder is removed from the
   /// Widget Tree.
@@ -215,7 +221,7 @@ class StoreBuilder<S> extends StatelessWidget {
   ///
   /// This can be useful for dispatching actions that remove stale data from
   /// your State tree.
-  final OnDisposeCallback onDispose;
+  final OnDisposeCallback<S> onDispose;
 
   /// A function that will be run on State change.
   ///
@@ -230,8 +236,7 @@ class StoreBuilder<S> extends StatelessWidget {
     this.onDispose,
     this.rebuildOnChange = true,
     this.onWillChange,
-  })
-      : assert(builder != null),
+  })  : assert(builder != null),
         super(key: key);
 
   @override
@@ -242,7 +247,7 @@ class StoreBuilder<S> extends StatelessWidget {
       rebuildOnChange: rebuildOnChange,
       onInit: onInit,
       onDispose: onDispose,
-      onWillChange: this.onWillChange,
+      onWillChange: onWillChange,
     );
   }
 }
@@ -254,8 +259,8 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
   final Store<S> store;
   final bool rebuildOnChange;
   final bool distinct;
-  final OnInitCallback onInit;
-  final OnDisposeCallback onDispose;
+  final OnInitCallback<S> onInit;
+  final OnDisposeCallback<S> onDispose;
   final IgnoreChangeTest<S> ignoreChange;
   final OnWillChangeCallback<ViewModel> onWillChange;
 
@@ -270,16 +275,16 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
     this.rebuildOnChange = true,
     this.ignoreChange,
     this.onWillChange,
-  })
-      : super(key: key);
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return new _StoreStreamListenerState();
+    return new _StoreStreamListenerState<S, ViewModel>();
   }
 }
 
-class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
+class _StoreStreamListenerState<S, ViewModel>
+    extends State<_StoreStreamListener<S, ViewModel>> {
   Stream<ViewModel> stream;
   ViewModel latestValue;
 
@@ -304,7 +309,7 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
   }
 
   @override
-  void didUpdateWidget(_StoreStreamListener oldWidget) {
+  void didUpdateWidget(_StoreStreamListener<S, ViewModel> oldWidget) {
     if (widget.store != oldWidget.store) {
       _init();
     }
@@ -315,13 +320,13 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
   void _init() {
     latestValue = widget.converter(widget.store);
 
-    stream = widget.store.onChange;
+    Stream<S> _stream = widget.store.onChange;
 
     if (widget.ignoreChange != null) {
-      stream = stream.where((state) => !widget.ignoreChange(state));
+      _stream = _stream.where((state) => !widget.ignoreChange(state));
     }
 
-    stream = stream.map((_) => widget.converter(widget.store));
+    stream = _stream.map((_) => widget.converter(widget.store));
 
     // Don't use `Stream.distinct` because it cannot capture the initial
     // ViewModel produced by the `converter`.
@@ -351,7 +356,7 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
   @override
   Widget build(BuildContext context) {
     return widget.rebuildOnChange
-        ? new StreamBuilder(
+        ? new StreamBuilder<ViewModel>(
             stream: stream,
             builder: (context, snapshot) => widget.builder(
                   context,
