@@ -16,6 +16,13 @@ This package is built to work with [Redux.dart](https://pub.dartlang.org/package
 
   * Dart 1: 0.3.x
   * Dart 2: 0.4.0+. See the migration guide below!
+  
+## Dart 2 Migration Guide
+
+Dart 2 requires more strict typing (yay!), and gives us the option to make getting the Store from the StoreProvider more convenient!
+
+  1. Change `new StoreProvider(...)` to `new StoreProvider<StateClass>(...)` in your Widget tree. 
+  2. Change `new StoreProvider.of(context).store` to `StoreProvider.of<StateClass>(context)` if you're directly fetching the `Store<AppState>` yourself from the `StoreProvider<AppState>`. No need to access the `store` field directly any more since Dart 2 can now infer the proper type with a static function :)
 
 ## Examples
 
@@ -71,21 +78,21 @@ class FlutterReduxApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData.dark(),
+      theme: new ThemeData.dark(),
       title: title,
-      home: StoreProvider<int>(
+      home: new StoreProvider<int>(
         // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
         // Widgets will find and use this value as the `Store`.
         store: store,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(title),
+        child: new Scaffold(
+          appBar: new AppBar(
+            title: new Text(title),
           ),
-          body: Center(
-            child: Column(
+          body: new Center(
+            child: new Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
+                new Text(
                   'You have pushed the button this many times:',
                 ),
                 // Connect the Store to a Text Widget that renders the current
@@ -103,10 +110,12 @@ class FlutterReduxApp extends StatelessWidget {
                 // count. No need to manually manage subscriptions or Streams!
                 new StoreConnector<int, String>(
                   converter: (store) => store.state.toString(),
-                  builder: (context, count) => Text(
-                        count,
-                        style: Theme.of(context).textTheme.display1,
-                      ),
+                  builder: (context, count) {
+                    return new Text(
+                      count,
+                      style: Theme.of(context).textTheme.display1,
+                    );
+                  },
                 )
               ],
             ),
@@ -122,26 +131,21 @@ class FlutterReduxApp extends StatelessWidget {
               // with no parameters. It only dispatches an Increment action.
               return () => store.dispatch(Actions.Increment);
             },
-            builder: (context, callback) => FloatingActionButton(
-                  // Attach the `callback` to the `onPressed` attribute
-                  onPressed: callback,
-                  tooltip: 'Increment',
-                  child: Icon(Icons.add),
-                ),
+            builder: (context, callback) {
+              return new FloatingActionButton(
+                // Attach the `callback` to the `onPressed` attribute
+                onPressed: callback,
+                tooltip: 'Increment',
+                child: new Icon(Icons.add),
+              );
+            },
           ),
         ),
       ),
     );
   }
 }
-```  
-
-## Dart 2 Migration
-
-Dart 2 requires more strict typing (yay!), and gives us the option to make getting the Store from the StoreProvider more convenient!
-
-  1. Change `new StoreProvider(...)` to `StoreProvider<StateClass>(...)` in your Widget tree. 
-  2. Change `new StoreProvider.of(context).store` to `StoreProvider.of<StateClass>(context)` if you're directly fetching the `Store<AppState>` yourself from the `StoreProvider<AppState>`. No need to access the `store` field directly any more since Dart 2 can now infer the proper type with a static function :)  
+```    
 
 ## Purpose
 

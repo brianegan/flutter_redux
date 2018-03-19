@@ -5,8 +5,12 @@
   * Works with Dart 2 (no longer supports Dart 1)
   * Stronger Type info Required
   * Breaking Changes: 
-    * `StoreProvider` now requires generic type info: `StoreProvider<AppState>`
-    * `new StoreProvider.of(context).store` is now `StoreProvider.of<AppState>(context)` 
+    * `StoreProvider` now requires generic type info: `new StoreProvider<AppState>`
+    * `new StoreProvider.of(context).store` is now `StoreProvider.of<AppState>(context)`
+    
+## 0.3.6
+
+  * Add `onWillChange`. This function will be called before the builder and can be used for working with Imperative APIs, such as Navigator, TextEditingController, or TabController.
 
 ## 0.3.6
 

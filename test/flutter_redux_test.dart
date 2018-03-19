@@ -7,13 +7,13 @@ void main() {
   group('StoreProvider', () {
     testWidgets('passes a Redux Store down to its descendants',
         (WidgetTester tester) async {
-      final store = Store<String>(
+      final store = new Store<String>(
         identityReducer,
         initialState: "I",
       );
-      final widget = StoreProvider<String>(
+      final widget = new StoreProvider<String>(
         store: store,
-        child: StoreCaptor<String>(),
+        child: new StoreCaptor<String>(),
       );
 
       await tester.pumpWidget(widget);
@@ -27,12 +27,12 @@ void main() {
     testWidgets('should update the children if the store changes',
         (WidgetTester tester) async {
       Widget widget([String state]) {
-        return StoreProvider<String>(
-          store: Store<String>(
+        return new StoreProvider<String>(
+          store: new Store<String>(
             identityReducer,
             initialState: state,
           ),
-          child: StoreCaptor<String>(),
+          child: new StoreCaptor<String>(),
         );
       }
 
@@ -49,11 +49,11 @@ void main() {
   group('StoreConnector', () {
     testWidgets('initially builds from the current state of the store',
         (WidgetTester tester) async {
-      final widget = StoreProvider<String>(
-        store: Store<String>(identityReducer, initialState: "I"),
+      final widget = new StoreProvider<String>(
+        store: new Store<String>(identityReducer, initialState: "I"),
         child: new StoreBuilder<String>(
           builder: (context, store) {
-            return Text(
+            return new Text(
               store.state,
               textDirection: TextDirection.ltr,
             );
@@ -68,12 +68,12 @@ void main() {
 
     testWidgets('can convert the store to a ViewModel',
         (WidgetTester tester) async {
-      final widget = StoreProvider<String>(
-        store: Store<String>(identityReducer, initialState: "I"),
+      final widget = new StoreProvider<String>(
+        store: new Store<String>(identityReducer, initialState: "I"),
         child: new StoreConnector<String, String>(
           converter: selector,
           builder: (context, latest) {
-            return Text(
+            return new Text(
               latest,
               textDirection: TextDirection.ltr,
             );
@@ -88,15 +88,15 @@ void main() {
 
     testWidgets('builds the latest state of the store after a change event',
         (WidgetTester tester) async {
-      final store = Store<String>(
+      final store = new Store<String>(
         identityReducer,
         initialState: "I",
       );
-      final widget = StoreProvider<String>(
+      final widget = new StoreProvider<String>(
         store: store,
         child: new StoreBuilder<String>(
           builder: (context, store) {
-            return Text(
+            return new Text(
               store.state,
               textDirection: TextDirection.ltr,
             );
@@ -119,18 +119,18 @@ void main() {
     testWidgets('rebuilds by default whenever the store emits a change',
         (WidgetTester tester) async {
       var numBuilds = 0;
-      final store = Store<String>(
+      final store = new Store<String>(
         identityReducer,
         initialState: "I",
       );
-      final widget = StoreProvider<String>(
+      final widget = new StoreProvider<String>(
         store: store,
         child: new StoreConnector<String, String>(
           converter: selector,
           builder: (context, latest) {
             numBuilds++;
 
-            return Container();
+            return new Container();
           },
         ),
       );
@@ -151,11 +151,11 @@ void main() {
     testWidgets('does not rebuild if rebuildOnChange is set to false',
         (WidgetTester tester) async {
       var numBuilds = 0;
-      final store = Store<String>(
+      final store = new Store<String>(
         identityReducer,
         initialState: "I",
       );
-      final widget = StoreProvider<String>(
+      final widget = new StoreProvider<String>(
         store: store,
         child: new StoreConnector<String, String>(
           converter: selector,
@@ -163,7 +163,7 @@ void main() {
           builder: (context, latest) {
             numBuilds++;
 
-            return Container();
+            return new Container();
           },
         ),
       );
@@ -188,11 +188,11 @@ void main() {
     testWidgets('does not rebuild if ignoreChange returns true',
         (WidgetTester tester) async {
       var numBuilds = 0;
-      final store = Store<String>(
+      final store = new Store<String>(
         identityReducer,
         initialState: "I",
       );
-      final widget = StoreProvider<String>(
+      final widget = new StoreProvider<String>(
         store: store,
         child: new StoreConnector<String, String>(
           ignoreChange: (dynamic state) => state == 'N',
@@ -200,7 +200,7 @@ void main() {
           builder: (context, latest) {
             numBuilds++;
 
-            return Container();
+            return new Container();
           },
         ),
       );
@@ -223,13 +223,13 @@ void main() {
     testWidgets('optionally runs a function when initialized',
         (WidgetTester tester) async {
       var numBuilds = 0;
-      final counter = CallCounter();
-      final store = Store<String>(
+      final counter = CallCounter<Store<String>>();
+      final store = new Store<String>(
         identityReducer,
         initialState: "A",
       );
       final Widget Function() widget = () {
-        return StoreProvider<String>(
+        return new StoreProvider<String>(
           store: store,
           child: new StoreConnector<String, String>(
             onInit: counter,
@@ -237,7 +237,7 @@ void main() {
             builder: (context, latest) {
               numBuilds++;
 
-              return Container();
+              return new Container();
             },
           ),
         );
@@ -274,12 +274,12 @@ void main() {
     testWidgets('onInit is called before the first ViewModel is built',
         (WidgetTester tester) async {
       String currentState;
-      final store = Store<String>(
+      final store = new Store<String>(
         identityReducer,
         initialState: "I",
       );
       final Widget Function() widget = () {
-        return StoreProvider<String>(
+        return new StoreProvider<String>(
           store: store,
           child: new StoreConnector<String, String>(
             converter: selector,
@@ -288,7 +288,7 @@ void main() {
             },
             builder: (context, state) {
               currentState = state;
-              return Container();
+              return new Container();
             },
           ),
         );
@@ -303,12 +303,12 @@ void main() {
 
     testWidgets('optionally runs a function before rebuild',
         (WidgetTester tester) async {
-      final counter = new CallCounter();
-      final store = new Store(new IdentityReducer(), initialState: "A");
+      final counter = new CallCounter<String>();
+      final store = new Store<String>(identityReducer, initialState: "A");
 
-      final widget = () => new StoreProvider(
+      final widget = () => new StoreProvider<String>(
             store: store,
-            child: new StoreConnector(
+            child: new StoreConnector<String, String>(
               onWillChange: counter,
               converter: (store) => store.state,
               builder: (context, latest) => new Container(),
@@ -327,13 +327,13 @@ void main() {
 
     testWidgets('optionally runs a function when disposed',
         (WidgetTester tester) async {
-      final counter = CallCounter();
-      final store = Store<String>(
+      final counter = CallCounter<Store<String>>();
+      final store = new Store<String>(
         identityReducer,
         initialState: "A",
       );
       final Widget Function() widget = () {
-        return StoreProvider<String>(
+        return new StoreProvider<String>(
           store: store,
           child: new StoreConnector<String, String>(
             onDispose: counter,
@@ -360,20 +360,20 @@ void main() {
     testWidgets('StoreBuilder also runs a function when initialized',
         (WidgetTester tester) async {
       var numBuilds = 0;
-      final counter = CallCounter();
-      final store = Store<String>(
+      final counter = CallCounter<Store<String>>();
+      final store = new Store<String>(
         identityReducer,
         initialState: "A",
       );
       final Widget Function() widget = () {
-        return StoreProvider<String>(
+        return new StoreProvider<String>(
           store: store,
           child: new StoreBuilder<String>(
             onInit: counter,
             builder: (context, store) {
               numBuilds++;
 
-              return Container();
+              return new Container();
             },
           ),
         );
@@ -409,6 +409,29 @@ void main() {
 
     testWidgets('StoreBuilder also optionally runs a function before rebuild',
         (WidgetTester tester) async {
+      final counter = new CallCounter<Store<String>>();
+      final store = new Store(identityReducer, initialState: "A");
+
+      final widget = () => new StoreProvider(
+            store: store,
+            child: new StoreBuilder<String>(
+              onWillChange: counter,
+              builder: (context, latest) => new Container(),
+            ),
+          );
+
+      await tester.pumpWidget(widget());
+
+      expect(counter.callCount, 0);
+
+      store.dispatch("A");
+      await tester.pumpWidget(widget());
+
+      expect(counter.callCount, 1);
+    });
+
+    testWidgets('StoreBuilder also optionally runs a function before rebuild',
+        (WidgetTester tester) async {
       final counter = new CallCounter();
       final store = new Store(new IdentityReducer(), initialState: "A");
 
@@ -432,13 +455,13 @@ void main() {
 
     testWidgets('StoreBuilder also runs a function when disposed',
         (WidgetTester tester) async {
-      final counter = CallCounter();
-      final store = Store<String>(
+      final counter = CallCounter<Store<String>>();
+      final store = new Store<String>(
         identityReducer,
         initialState: "init",
       );
       final Widget Function() widget = () {
-        return StoreProvider<String>(
+        return new StoreProvider<String>(
           store: store,
           child: new StoreBuilder<String>(
             onDispose: counter,
@@ -465,11 +488,11 @@ void main() {
         'avoids rebuilds when distinct is used with a class that implements ==',
         (WidgetTester tester) async {
       var numBuilds = 0;
-      final store = Store<String>(
+      final store = new Store<String>(
         identityReducer,
         initialState: "I",
       );
-      final widget = StoreProvider<String>(
+      final widget = new StoreProvider<String>(
         store: store,
         child: new StoreConnector<String, String>(
           // Same exact setup as the previous test, but distinct is set to true.
@@ -478,7 +501,7 @@ void main() {
           builder: (context, latest) {
             numBuilds++;
 
-            return Container();
+            return new Container();
           },
         ),
       );
@@ -520,7 +543,7 @@ class StoreCaptor<S> extends StatelessWidget {
   Widget build(BuildContext context) {
     store = StoreProvider.of<S>(context);
 
-    return Container();
+    return new Container();
   }
 }
 
