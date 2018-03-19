@@ -152,3 +152,8 @@ Similar patterns in Android are the MVP Pattern, or using Rx Observables to mana
 `flutter_redux` simply handles passing your `Store` down to all of your descendant `StoreConnector` Widgets. If your State emits a change event, only the `StoreConnector` Widgets and their descendants will be automatically rebuilt with the latest state of the `Store`! 
 
 This allows you to focus on what your app should look like and how it should work without thinking about all the glue code to hook everything together!
+
+### Contributors
+
+  * [Brian Egan](https://github.com/brianegan)
+  * [Chris Bird](https://github.com/chrisabird)

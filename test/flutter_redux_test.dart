@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:redux/redux.dart';
-
-import 'package:flutter_redux/flutter_redux.dart';
 
 void main() {
   group('StoreProvider', () {
@@ -296,20 +295,17 @@ void main() {
 
     testWidgets('optionally runs a function before rebuild',
         (WidgetTester tester) async {
-      final counter =  new CallCounter();
-      final store = new Store (
-        new IdentityReducer(),
-        initialState: "A"
-      );
+      final counter = new CallCounter();
+      final store = new Store(new IdentityReducer(), initialState: "A");
 
       final widget = () => new StoreProvider(
-        store: store,
-        child: new StoreConnector(
-            onWillChange: counter,
-            converter: (store) => store.state,
-            builder:  (context, latest) => new Container(),
-        ),
-      );
+            store: store,
+            child: new StoreConnector(
+              onWillChange: counter,
+              converter: (store) => store.state,
+              builder: (context, latest) => new Container(),
+            ),
+          );
 
       await tester.pumpWidget(widget());
 
@@ -400,30 +396,27 @@ void main() {
     });
 
     testWidgets('StoreBuilder also optionally runs a function before rebuild',
-            (WidgetTester tester) async {
-          final counter =  new CallCounter();
-          final store = new Store (
-              new IdentityReducer(),
-              initialState: "A"
-          );
+        (WidgetTester tester) async {
+      final counter = new CallCounter();
+      final store = new Store(new IdentityReducer(), initialState: "A");
 
-          final widget = () => new StoreProvider(
+      final widget = () => new StoreProvider(
             store: store,
             child: new StoreBuilder(
               onWillChange: counter,
-              builder:  (context, latest) => new Container(),
+              builder: (context, latest) => new Container(),
             ),
           );
 
-          await tester.pumpWidget(widget());
+      await tester.pumpWidget(widget());
 
-          expect(counter.callCount, 0);
+      expect(counter.callCount, 0);
 
-          store.dispatch("A");
-          await tester.pumpWidget(widget());
+      store.dispatch("A");
+      await tester.pumpWidget(widget());
 
-          expect(counter.callCount, 1);
-        });
+      expect(counter.callCount, 1);
+    });
 
     testWidgets('StoreBuilder also runs a function when disposed',
         (WidgetTester tester) async {

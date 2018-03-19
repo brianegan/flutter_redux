@@ -75,7 +75,6 @@ typedef OnDisposeCallback<S> = void Function(
 /// your `converter` function.
 typedef IgnoreChangeTest<S> = bool Function(S state);
 
-
 /// A function that will be run on State change.
 ///
 /// This function is passed the `ViewModel`, and if `distinct` is `true`,
@@ -181,7 +180,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
       onDispose: onDispose,
       rebuildOnChange: rebuildOnChange,
       ignoreChange: ignoreChange,
-      onWillChange: onWillChange
+      onWillChange: onWillChange,
     );
   }
 }
@@ -334,16 +333,17 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
       });
     }
 
-    if (widget.onWillChange != null) {
-      stream.forEach(widget.onWillChange);
-    }
-
     // After each ViewModel is emitted from the Stream, we update the
     // latestValue. Important: This must be done after all other optional
     // transformations, such as ignoreChange.
     stream = stream
         .transform(new StreamTransformer.fromHandlers(handleData: (vm, sink) {
       latestValue = vm;
+
+      if (widget.onWillChange != null) {
+        widget.onWillChange(latestValue);
+      }
+
       sink.add(vm);
     }));
   }

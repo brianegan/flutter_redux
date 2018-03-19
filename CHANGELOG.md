@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.6
+
+  * Add `onWillChange`. This function will be called before the builder and can be used for working with Imperative APIs, such as Navigator, TextEditingController, or TabController.
+
 ## 0.3.5
 
   * Bugfix: `onInit` was not called before the initial ViewModel is constructed. 
