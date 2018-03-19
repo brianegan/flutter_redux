@@ -63,7 +63,7 @@ void main() {
   // with Hot Reload than creating it directly in the `build` function.
   final store = Store<int>(counterReducer, initialState: 0);
 
-  runApp(FlutterReduxApp(
+  runApp(new FlutterReduxApp(
     title: 'Flutter Redux Demo',
     store: store,
   ));
@@ -77,7 +77,7 @@ class FlutterReduxApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return new MaterialApp(
       theme: new ThemeData.dark(),
       title: title,
       home: new StoreProvider<int>(
