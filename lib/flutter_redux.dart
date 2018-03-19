@@ -75,6 +75,16 @@ typedef OnDisposeCallback<S> = void Function(
 /// your `converter` function.
 typedef IgnoreChangeTest<S> = bool Function(S state);
 
+
+/// A function that will be run on State change.
+///
+/// This function is passed the `ViewModel`, and if `distinct` is `true`,
+/// it will only be called if the `ViewModel` changes.
+///
+/// This can be useful for imperative calls to things like Navigator,
+/// TabController, etc
+typedef OnWillChangeCallback<ViewModel> = void Function(ViewModel viewModel);
+
 /// Build a widget based on the state of the [Store].
 ///
 /// Before the [builder] is run, the [converter] will convert the store into a
@@ -136,6 +146,15 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// your [converter] function.
   final IgnoreChangeTest<S> ignoreChange;
 
+  /// A function that will be run on State change.
+  ///
+  /// This function is passed the `ViewModel`, and if `distinct` is `true`,
+  /// it will only be called if the `ViewModel` changes.
+  ///
+  /// This can be useful for imperative calls to things like Navigator,
+  /// TabController, etc
+  final OnWillChangeCallback<ViewModel> onWillChange;
+
   StoreConnector({
     Key key,
     @required this.builder,
@@ -145,6 +164,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
     this.onDispose,
     this.rebuildOnChange = true,
     this.ignoreChange,
+    this.onWillChange,
   })
       : assert(builder != null),
         assert(converter != null),
@@ -161,6 +181,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
       onDispose: onDispose,
       rebuildOnChange: rebuildOnChange,
       ignoreChange: ignoreChange,
+      onWillChange: onWillChange
     );
   }
 }
@@ -197,12 +218,19 @@ class StoreBuilder<S> extends StatelessWidget {
   /// your State tree.
   final OnDisposeCallback onDispose;
 
+  /// A function that will be run on State change.
+  ///
+  /// This can be useful for imperative calls to things like Navigator,
+  /// TabController, etc
+  final OnWillChangeCallback<Store<S>> onWillChange;
+
   StoreBuilder({
     Key key,
     @required this.builder,
     this.onInit,
     this.onDispose,
     this.rebuildOnChange = true,
+    this.onWillChange,
   })
       : assert(builder != null),
         super(key: key);
@@ -215,6 +243,7 @@ class StoreBuilder<S> extends StatelessWidget {
       rebuildOnChange: rebuildOnChange,
       onInit: onInit,
       onDispose: onDispose,
+      onWillChange: this.onWillChange,
     );
   }
 }
@@ -229,6 +258,7 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
   final OnInitCallback onInit;
   final OnDisposeCallback onDispose;
   final IgnoreChangeTest<S> ignoreChange;
+  final OnWillChangeCallback<ViewModel> onWillChange;
 
   _StoreStreamListener({
     Key key,
@@ -240,6 +270,7 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
     this.onDispose,
     this.rebuildOnChange = true,
     this.ignoreChange,
+    this.onWillChange,
   })
       : super(key: key);
 
@@ -301,6 +332,10 @@ class _StoreStreamListenerState<ViewModel> extends State<_StoreStreamListener> {
 
         return isDistinct;
       });
+    }
+
+    if (widget.onWillChange != null) {
+      stream.forEach(widget.onWillChange);
     }
 
     // After each ViewModel is emitted from the Stream, we update the
