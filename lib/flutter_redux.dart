@@ -229,12 +229,6 @@ class StoreBuilder<S> extends StatelessWidget {
   /// TabController, etc
   final OnWillChangeCallback<Store<S>> onWillChange;
 
-  /// A function that will be run on State change.
-  ///
-  /// This can be useful for imperative calls to things like Navigator,
-  /// TabController, etc
-  final OnWillChangeCallback<Store<S>> onWillChange;
-
   StoreBuilder({
     Key key,
     @required this.builder,

@@ -430,29 +430,6 @@ void main() {
       expect(counter.callCount, 1);
     });
 
-    testWidgets('StoreBuilder also optionally runs a function before rebuild',
-        (WidgetTester tester) async {
-      final counter = new CallCounter();
-      final store = new Store(new IdentityReducer(), initialState: "A");
-
-      final widget = () => new StoreProvider(
-            store: store,
-            child: new StoreBuilder(
-              onWillChange: counter,
-              builder: (context, latest) => new Container(),
-            ),
-          );
-
-      await tester.pumpWidget(widget());
-
-      expect(counter.callCount, 0);
-
-      store.dispatch("A");
-      await tester.pumpWidget(widget());
-
-      expect(counter.callCount, 1);
-    });
-
     testWidgets('StoreBuilder also runs a function when disposed',
         (WidgetTester tester) async {
       final counter = CallCounter<Store<String>>();
