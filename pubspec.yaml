@@ -4,6 +4,9 @@ version: 0.3.6
 author: Brian Egan <brian@brianegan.com>
 homepage: https://github.com/brianegan/flutter_redux
 
+environment:
+  sdk: ">=1.24.3 <2.0.0"
+
 dependencies:
   meta: ">=1.1.1 <2.0.0"
   redux: ">=2.0.0 <3.0.0"
