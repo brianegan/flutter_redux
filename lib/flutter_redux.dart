@@ -79,7 +79,7 @@ typedef IgnoreChangeTest<S> = bool Function(S state);
 /// A function that will be run on State change.
 ///
 /// This function is passed the `ViewModel`, and if `distinct` is `true`,
-/// it will only be called in the `ViewModel` changes.
+/// it will only be called if the `ViewModel` changes.
 ///
 /// This can be useful for imperative calls to things like Navigator,
 /// TabController, etc
@@ -149,7 +149,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// A function that will be run on State change.
   ///
   /// This function is passed the `ViewModel`, and if `distinct` is `true`,
-  /// it will only be called in the `ViewModel` changes.
+  /// it will only be called if the `ViewModel` changes.
   ///
   /// This can be useful for imperative calls to things like Navigator,
   /// TabController, etc
