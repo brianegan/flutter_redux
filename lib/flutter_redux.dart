@@ -35,6 +35,19 @@ class StoreProvider<S> extends InheritedWidget {
   bool updateShouldNotify(StoreProvider<S> old) => _store != old._store;
 }
 
+class StoreFinder<S> {
+  Store<S> of(BuildContext context) {
+    final StoreProvider<S> provider = context
+        .inheritFromWidgetOfExactType(new _OfType<StoreProvider<S>>().type);
+
+    return provider._store;
+  }
+}
+
+class _OfType<T> {
+  Type get type => T;
+}
+
 /// Build a Widget using the [BuildContext] and [ViewModel]. The [ViewModel] is
 /// derived from the [Store] using a [StoreConverter].
 typedef ViewModelBuilder<ViewModel> = Widget Function(
@@ -178,7 +191,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new _StoreStreamListener<S, ViewModel>(
-      store: StoreProvider.of<S>(context),
+      store: new StoreFinder<S>().of(context),
       builder: builder,
       converter: converter,
       distinct: distinct,
