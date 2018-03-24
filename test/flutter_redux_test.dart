@@ -223,7 +223,7 @@ void main() {
     testWidgets('optionally runs a function when initialized',
         (WidgetTester tester) async {
       var numBuilds = 0;
-      final counter = CallCounter<Store<String>>();
+      final counter = new CallCounter<Store<String>>();
       final store = new Store<String>(
         identityReducer,
         initialState: "A",
@@ -327,7 +327,7 @@ void main() {
 
     testWidgets('optionally runs a function when disposed',
         (WidgetTester tester) async {
-      final counter = CallCounter<Store<String>>();
+      final counter = new CallCounter<Store<String>>();
       final store = new Store<String>(
         identityReducer,
         initialState: "A",
@@ -352,7 +352,7 @@ void main() {
       store.dispatch("A");
 
       // Rebuild a different widget tree. Expect this to trigger `onDispose`.
-      await tester.pumpWidget(Container());
+      await tester.pumpWidget(new Container());
 
       expect(counter.callCount, 1);
     });
@@ -360,7 +360,7 @@ void main() {
     testWidgets('StoreBuilder also runs a function when initialized',
         (WidgetTester tester) async {
       var numBuilds = 0;
-      final counter = CallCounter<Store<String>>();
+      final counter = new CallCounter<Store<String>>();
       final store = new Store<String>(
         identityReducer,
         initialState: "A",
@@ -432,7 +432,7 @@ void main() {
 
     testWidgets('StoreBuilder also runs a function when disposed',
         (WidgetTester tester) async {
-      final counter = CallCounter<Store<String>>();
+      final counter = new CallCounter<Store<String>>();
       final store = new Store<String>(
         identityReducer,
         initialState: "init",
@@ -442,7 +442,7 @@ void main() {
           store: store,
           child: new StoreBuilder<String>(
             onDispose: counter,
-            builder: (context, store) => Container(),
+            builder: (context, store) => new Container(),
           ),
         );
       };
@@ -456,7 +456,7 @@ void main() {
 
       // Rebuild a different widget, should trigger a dispose as the
       // StoreBuilder has been removed from the Widget tree.
-      await tester.pumpWidget(Container());
+      await tester.pumpWidget(new Container());
 
       expect(counter.callCount, 1);
     });

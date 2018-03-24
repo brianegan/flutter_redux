@@ -16,7 +16,8 @@ class StoreProvider<S> extends InheritedWidget {
     Key key,
     @required Store<S> store,
     @required Widget child,
-  })  : assert(store != null),
+  })
+      : assert(store != null),
         assert(child != null),
         _store = store,
         super(key: key, child: child);
@@ -184,7 +185,8 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
     this.rebuildOnChange = true,
     this.ignoreChange,
     this.onWillChange,
-  })  : assert(builder != null),
+  })
+      : assert(builder != null),
         assert(converter != null),
         super(key: key);
 
@@ -249,7 +251,8 @@ class StoreBuilder<S> extends StatelessWidget {
     this.onDispose,
     this.rebuildOnChange = true,
     this.onWillChange,
-  })  : assert(builder != null),
+  })
+      : assert(builder != null),
         super(key: key);
 
   @override
@@ -288,7 +291,8 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
     this.rebuildOnChange = true,
     this.ignoreChange,
     this.onWillChange,
-  }) : super(key: key);
+  })
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
