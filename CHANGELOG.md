@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1
+
+  * Update example to wrap entire app with StoreProvider
+  * Throw more helpful error message if no StoreProvider is found in the tree
+
 ## 0.4.0
 
   * Works with Dart 2 (no longer supports Dart 1)

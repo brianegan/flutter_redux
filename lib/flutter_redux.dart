@@ -22,8 +22,11 @@ class StoreProvider<S> extends InheritedWidget {
         super(key: key, child: child);
 
   static Store<S> of<S>(BuildContext context) {
+    final type = _typeOf<StoreProvider<S>>();
     final StoreProvider<S> provider =
-        context.inheritFromWidgetOfExactType(_typeOf<StoreProvider<S>>());
+        context.inheritFromWidgetOfExactType(type);
+
+    if (provider == null) throw new StoreProviderError(type);
 
     return provider._store;
   }
@@ -364,5 +367,23 @@ class _StoreStreamListenerState<S, ViewModel>
                 ),
           )
         : widget.builder(context, latestValue);
+  }
+}
+
+class StoreProviderError extends Error {
+  Type type;
+
+  StoreProviderError(this.type);
+
+  String toString() {
+    return '''Error: No $type found. To fix, please try:
+          
+  * Using Dart 2 (required) by using the --preview-dart-2 flag
+  * Wrapping your MaterialApp with the StoreProvider<State>, rather than an individual Route
+  * Providing full type information to your Store<State>, StoreProvider<State> and StoreConnector<State, ViewModel>
+  
+If none of these solutions work, please file a bug at:
+https://github.com/brianegan/flutter_redux/issues/new
+      ''';
   }
 }

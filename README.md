@@ -12,7 +12,7 @@ This package is built to work with [Redux.dart](https://pub.dartlang.org/package
   * `StoreBuilder` - A descendant Widget that gets the Store from a `StoreProvider` and passes it to a Widget `builder` function.
   * `StoreConnector` - A descendant Widget that gets the Store from the nearest `StoreProvider` ancestor, converts the `Store` into a `ViewModel` with the given `converter` function, and passes the `ViewModel` to a `builder` function. Any time the Store emits a change event, the Widget will automatically be rebuilt. No need to manage subscriptions!
   
-## Dart Support
+## Dart Versions
 
   * Dart 1: 0.3.x
   * Dart 2: 0.4.0+. See the migration guide below!
@@ -77,14 +77,16 @@ class FlutterReduxApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      theme: new ThemeData.dark(),
-      title: title,
-      home: new StoreProvider<int>(
-        // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
-        // Widgets will find and use this value as the `Store`.
-        store: store,
-        child: new Scaffold(
+    // The StoreProvider should wrap your MaterialApp or WidgetsApp. This will
+    // ensure all routes have access to the store.
+    return new StoreProvider<int>(
+      // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
+      // Widgets will find and use this value as the `Store`.
+      store: store,
+      child: new MaterialApp(
+        theme: new ThemeData.dark(),
+        title: title,
+        home: new Scaffold(
           appBar: new AppBar(
             title: new Text(title),
           ),

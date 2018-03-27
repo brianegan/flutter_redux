@@ -24,6 +24,22 @@ void main() {
       expect(captor.store, store);
     });
 
+    testWidgets('throws a helpful message if no provider found',
+        (WidgetTester tester) async {
+      final store = new Store<String>(
+        identityReducer,
+        initialState: "I",
+      );
+      final widget = new StoreProvider<String>(
+        store: store,
+        child: new StoreCaptor<int>(),
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(tester.takeException(), new isInstanceOf<StoreProviderError>());
+    });
+
     testWidgets('should update the children if the store changes',
         (WidgetTester tester) async {
       Widget widget([String state]) {
