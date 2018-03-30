@@ -6,7 +6,7 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
-  redux: ">=2.0.0 <3.0.0"
+  redux: ">=3.0.0 <4.0.0"
   flutter_redux:
     path: ../
   flutter_test:

@@ -4,7 +4,7 @@
 
 A set of utilities that allow you to easily consume a [Redux](https://pub.dartlang.org/packages/redux) Store to build Flutter Widgets.
 
-This package is built to work with [Redux.dart](https://pub.dartlang.org/packages/redux).
+This package is built to work with [Redux.dart](https://pub.dartlang.org/packages/redux) 3.0.0+.
 
 ## Redux Widgets 
 
@@ -21,8 +21,9 @@ This package is built to work with [Redux.dart](https://pub.dartlang.org/package
 
 Dart 2 requires more strict typing (yay!), and gives us the option to make getting the Store from the StoreProvider more convenient!
 
-  1. Change `new StoreProvider(...)` to `new StoreProvider<StateClass>(...)` in your Widget tree. 
-  2. Change `new StoreProvider.of(context).store` to `StoreProvider.of<StateClass>(context)` if you're directly fetching the `Store<AppState>` yourself from the `StoreProvider<AppState>`. No need to access the `store` field directly any more since Dart 2 can now infer the proper type with a static function :)
+  1. Ensure you are using Redux 3.0.0+
+  2. Change `new StoreProvider(...)` to `new StoreProvider<StateClass>(...)` in your Widget tree. 
+  3. Change `new StoreProvider.of(context).store` to `StoreProvider.of<StateClass>(context)` if you're directly fetching the `Store<AppState>` yourself from the `StoreProvider<AppState>`. No need to access the `store` field directly any more since Dart 2 can now infer the proper type with a static function :)
 
 ## Examples
 
