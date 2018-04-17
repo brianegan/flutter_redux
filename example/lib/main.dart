@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+import 'package:redux_logging/redux_logging.dart';
 
 // One simple action: Increment
 enum Actions { Increment }
 
 // The reducer, which takes the previous count and increments it in response
 // to an Increment action.
-int counterReducer(int state, dynamic action) {
+int counterReducer(int state, Actions action) {
   if (action == Actions.Increment) {
     return state + 1;
   }
@@ -15,10 +16,39 @@ int counterReducer(int state, dynamic action) {
   return state;
 }
 
+class AppState {}
+
+class SchoolRepository {}
+
+class LoadSchoolsAction {}
+
+void loadSchools(Store<AppState> state, LoadSchoolsAction action,
+    NextDispatcher next,) {
+
+}
+
+List<Middleware<AppState>> defaultList = [
+  new LoggingMiddleware<AppState>.printer(),
+  new TypedMiddleware<AppState, LoadSchoolsAction>(
+      _createLoadSchools(new SchoolRepository())),
+];
+
+Middleware<AppState> _createLoadSchools(SchoolRepository repository) {
+  return (Store<AppState> store, dynamic action, NextDispatcher next) {
+    if (action is LoadSchoolsAction) {
+
+    }
+
+    next(action);
+  };
+}
+
 void main() {
   // Create your store as a final variable in a base Widget. This works better
   // with Hot Reload than creating it directly in the `build` function.
-  final store = new Store<int>(counterReducer, initialState: 0);
+  final store = new Store<int>(
+      combineReducers<int>([new TypedReducer(counterReducer)]),
+      initialState: 0);
 
   runApp(new FlutterReduxApp(
     title: 'Flutter Redux Demo',
@@ -72,7 +102,10 @@ class FlutterReduxApp extends StatelessWidget {
                   builder: (context, count) {
                     return new Text(
                       count,
-                      style: Theme.of(context).textTheme.display1,
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .display1,
                     );
                   },
                 )
