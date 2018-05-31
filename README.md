@@ -27,7 +27,8 @@ Dart 2 requires more strict typing (yay!), and gives us the option to make getti
 
 ## Examples
 
-  * [Simple example](https://gitlab.com/brianegan/flutter_redux/tree/master/example) - a port of the standard "Counter Button" example from Flutter
+  * [Simple example](https://gitlab.com/brianegan/flutter_redux/tree/master/example/counter) - a port of the standard "Counter Button" example from Flutter
+  * [Github Search](https://gitlab.com/brianegan/flutter_redux/tree/master/example/github_search) - an example of how to search as a user types, demonstrating both the Middleware and Epic approaches.
   * [Todo app](https://gitlab.com/brianegan/flutter_architecture_samples/tree/master/example/redux) - a more complete example, with persistence, routing, and nested state.
   
 ### Companion Libraries

@@ -94,7 +94,7 @@ class FlutterReduxApp extends StatelessWidget {
               return new FloatingActionButton(
                 // Attach the `callback` to the `onPressed` attribute
                 onPressed: callback,
-                tooltip: 'Increment',
+                tooltip: 'asdasdasd',
                 child: new Icon(Icons.add),
               );
             },
