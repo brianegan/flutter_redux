@@ -379,8 +379,12 @@ class StoreProviderError extends Error {
     return '''Error: No $type found. To fix, please try:
           
   * Using Dart 2 (required) by using the --preview-dart-2 flag
-  * Wrapping your MaterialApp with the StoreProvider<State>, rather than an individual Route
-  * Providing full type information to your Store<State>, StoreProvider<State> and StoreConnector<State, ViewModel>
+  * Wrapping your MaterialApp with the StoreProvider<State>, 
+  rather than an individual Route
+  * Providing full type information to your Store<State>, 
+  StoreProvider<State> and StoreConnector<State, ViewModel>
+  * Ensure you are using consistent and complete imports. 
+  E.g. always use `import 'package:my_app/app_state.dart';
   
 If none of these solutions work, please file a bug at:
 https://github.com/brianegan/flutter_redux/issues/new

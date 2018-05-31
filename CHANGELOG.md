@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1
+
+  * Add more advice to error message
+
 ## 0.5.0
 
   * Updated to work with latest version of Redux: 3.0.0
