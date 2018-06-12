@@ -236,7 +236,7 @@ void main() {
       expect(numBuilds, 1);
     });
 
-    testWidgets('optionally runs a function when initialized',
+    testWidgets('runs a function when initialized',
         (WidgetTester tester) async {
       var numBuilds = 0;
       final counter = CallCounter<Store<String>>();
@@ -317,32 +317,95 @@ void main() {
       expect(currentState, "A");
     });
 
-    testWidgets('optionally runs a function before rebuild',
-        (WidgetTester tester) async {
-      final counter = new CallCounter<String>();
+    testWidgets('runs a function before rebuild', (WidgetTester tester) async {
+      final states = <BuildState>[];
       final store = new Store<String>(identityReducer, initialState: "A");
 
       final widget = () => new StoreProvider<String>(
             store: store,
             child: new StoreConnector<String, String>(
-              onWillChange: counter,
+              onWillChange: (_) => states.add(BuildState.before),
               converter: (store) => store.state,
-              builder: (context, latest) => new Container(),
+              builder: (context, latest) {
+                states.add(BuildState.during);
+                return new Container();
+              },
             ),
           );
 
       await tester.pumpWidget(widget());
 
-      expect(counter.callCount, 0);
+      expect(states, [BuildState.during]);
 
       store.dispatch("A");
       await tester.pumpWidget(widget());
 
-      expect(counter.callCount, 1);
+      expect(states, [BuildState.during, BuildState.before, BuildState.during]);
     });
 
-    testWidgets('optionally runs a function when disposed',
+    testWidgets('runs a function after initial build',
         (WidgetTester tester) async {
+      final states = <BuildState>[];
+      final store = new Store<String>(identityReducer, initialState: "A");
+
+      final widget = () => new StoreProvider<String>(
+            store: store,
+            child: new StoreConnector<String, String>(
+              onInitialBuild: (_) => states.add(BuildState.after),
+              converter: (store) => store.state,
+              builder: (context, latest) {
+                states.add(BuildState.during);
+                return new Container();
+              },
+            ),
+          );
+
+      await tester.pumpWidget(widget());
+
+      expect(states, [BuildState.during, BuildState.after]);
+
+      // Should not run the onInitialBuild function again
+      await tester.pump();
+      expect(states, [BuildState.during, BuildState.after]);
+    });
+
+    testWidgets('runs a function after build when the vm changes',
+        (WidgetTester tester) async {
+      final states = <BuildState>[];
+      final store = new Store<String>(identityReducer, initialState: "A");
+
+      final widget = () => new StoreProvider<String>(
+            store: store,
+            child: new StoreConnector<String, String>(
+              onDidChange: (_) => states.add(BuildState.after),
+              converter: (store) => store.state,
+              builder: (context, latest) {
+                states.add(BuildState.during);
+                return new Container();
+              },
+            ),
+          );
+
+      // Does not initially call callback
+      await tester.pumpWidget(widget());
+      expect(states, [BuildState.during]);
+
+      // Runs the callback after the second build
+      store.dispatch('N');
+      await tester.pumpWidget(widget());
+      expect(states, [BuildState.during, BuildState.during, BuildState.after]);
+
+      // Does not run the callback if the VM has not changed
+      await tester.pumpWidget(widget());
+      expect(states, [
+        BuildState.during,
+        BuildState.during,
+        BuildState.after,
+        BuildState.during,
+      ]);
+    });
+
+    testWidgets('runs a function when disposed', (WidgetTester tester) async {
       final counter = CallCounter<Store<String>>();
       final store = new Store<String>(
         identityReducer,
@@ -373,7 +436,52 @@ void main() {
       expect(counter.callCount, 1);
     });
 
-    testWidgets('StoreBuilder also runs a function when initialized',
+    testWidgets(
+        'avoids rebuilds when distinct is used with a class that implements ==',
+        (WidgetTester tester) async {
+      var numBuilds = 0;
+      final store = new Store<String>(
+        identityReducer,
+        initialState: "I",
+      );
+      final widget = new StoreProvider<String>(
+        store: store,
+        child: new StoreConnector<String, String>(
+          // Same exact setup as the previous test, but distinct is set to true.
+          distinct: true,
+          converter: selector,
+          builder: (context, latest) {
+            numBuilds++;
+
+            return new Container();
+          },
+        ),
+      );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 1);
+
+      // Dispatch another action of the same type
+      store.dispatch("I");
+
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 1);
+
+      // Dispatch another action of a different type. This should trigger another
+      // rebuild
+      store.dispatch("A");
+
+      await tester.pumpWidget(widget);
+
+      expect(numBuilds, 2);
+    });
+  });
+
+  group('StoreBuilder', () {
+    testWidgets('runs a function when initialized',
         (WidgetTester tester) async {
       var numBuilds = 0;
       final counter = CallCounter<Store<String>>();
@@ -423,8 +531,7 @@ void main() {
       expect(counter.callCount, 1);
     });
 
-    testWidgets('StoreBuilder also optionally runs a function before rebuild',
-        (WidgetTester tester) async {
+    testWidgets('runs a function before rebuild', (WidgetTester tester) async {
       final counter = new CallCounter<Store<String>>();
       final store = new Store(identityReducer, initialState: "A");
 
@@ -446,8 +553,67 @@ void main() {
       expect(counter.callCount, 1);
     });
 
-    testWidgets('StoreBuilder also runs a function when disposed',
+    testWidgets('runs a function after initial build',
         (WidgetTester tester) async {
+      final states = <BuildState>[];
+      final store = new Store<String>(identityReducer, initialState: "A");
+
+      final widget = () => new StoreProvider<String>(
+            store: store,
+            child: new StoreBuilder<String>(
+              onInitialBuild: (_) => states.add(BuildState.after),
+              builder: (context, latest) {
+                states.add(BuildState.during);
+                return new Container();
+              },
+            ),
+          );
+
+      await tester.pumpWidget(widget());
+
+      expect(states, [BuildState.during, BuildState.after]);
+
+      // Should not run the onInitialBuild function again
+      await tester.pump();
+      expect(states, [BuildState.during, BuildState.after]);
+    });
+
+    testWidgets('runs a function after build when the vm changes',
+        (WidgetTester tester) async {
+      final states = <BuildState>[];
+      final store = new Store<String>(identityReducer, initialState: "A");
+
+      final widget = () => new StoreProvider<String>(
+            store: store,
+            child: new StoreBuilder<String>(
+              onDidChange: (_) => states.add(BuildState.after),
+              builder: (context, latest) {
+                states.add(BuildState.during);
+                return new Container();
+              },
+            ),
+          );
+
+      // Does not initially call callback
+      await tester.pumpWidget(widget());
+      expect(states, [BuildState.during]);
+
+      // Runs the callback after the second build
+      store.dispatch('N');
+      await tester.pumpWidget(widget());
+      expect(states, [BuildState.during, BuildState.during, BuildState.after]);
+
+      // Does not run the callback if the VM has not changed
+      await tester.pumpWidget(widget());
+      expect(states, [
+        BuildState.during,
+        BuildState.during,
+        BuildState.after,
+        BuildState.during,
+      ]);
+    });
+
+    testWidgets('runs a function when disposed', (WidgetTester tester) async {
       final counter = CallCounter<Store<String>>();
       final store = new Store<String>(
         identityReducer,
@@ -475,49 +641,6 @@ void main() {
       await tester.pumpWidget(Container());
 
       expect(counter.callCount, 1);
-    });
-
-    testWidgets(
-        'avoids rebuilds when distinct is used with a class that implements ==',
-        (WidgetTester tester) async {
-      var numBuilds = 0;
-      final store = new Store<String>(
-        identityReducer,
-        initialState: "I",
-      );
-      final widget = new StoreProvider<String>(
-        store: store,
-        child: new StoreConnector<String, String>(
-          // Same exact setup as the previous test, but distinct is set to true.
-          distinct: true,
-          converter: selector,
-          builder: (context, latest) {
-            numBuilds++;
-
-            return new Container();
-          },
-        ),
-      );
-
-      // Build the widget with the initial state
-      await tester.pumpWidget(widget);
-
-      expect(numBuilds, 1);
-
-      // Dispatch another action of the same type
-      store.dispatch("I");
-
-      await tester.pumpWidget(widget);
-
-      expect(numBuilds, 1);
-
-      // Dispatch another action of a different type. This should trigger another
-      // rebuild
-      store.dispatch("A");
-
-      await tester.pumpWidget(widget);
-
-      expect(numBuilds, 2);
     });
   });
 }
@@ -551,3 +674,5 @@ class CallCounter<S> {
 
   void call(S state) => states.add(state);
 }
+
+enum BuildState { before, during, after }
