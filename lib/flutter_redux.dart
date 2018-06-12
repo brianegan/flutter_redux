@@ -26,7 +26,7 @@ class StoreProvider<S> extends InheritedWidget {
     final StoreProvider<S> provider =
         context.inheritFromWidgetOfExactType(type);
 
-    if (provider == null) throw new StoreProviderError(type);
+    if (provider == null) throw StoreProviderError(type);
 
     return provider._store;
   }
@@ -218,7 +218,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new _StoreStreamListener<S, ViewModel>(
+    return _StoreStreamListener<S, ViewModel>(
       store: StoreProvider.of<S>(context),
       builder: builder,
       converter: converter,
@@ -298,7 +298,7 @@ class StoreBuilder<S> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new StoreConnector<S, Store<S>>(
+    return StoreConnector<S, Store<S>>(
       builder: builder,
       converter: _identity,
       rebuildOnChange: rebuildOnChange,
@@ -342,7 +342,7 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return new _StoreStreamListenerState<S, ViewModel>();
+    return _StoreStreamListenerState<S, ViewModel>();
   }
 }
 
@@ -410,8 +410,8 @@ class _StoreStreamListenerState<S, ViewModel>
     // After each ViewModel is emitted from the Stream, we update the
     // latestValue. Important: This must be done after all other optional
     // transformations, such as ignoreChange.
-    stream = stream
-        .transform(new StreamTransformer.fromHandlers(handleData: (vm, sink) {
+    stream =
+        stream.transform(StreamTransformer.fromHandlers(handleData: (vm, sink) {
       latestValue = vm;
 
       if (widget.onWillChange != null) {
@@ -431,7 +431,7 @@ class _StoreStreamListenerState<S, ViewModel>
   @override
   Widget build(BuildContext context) {
     return widget.rebuildOnChange
-        ? new StreamBuilder<ViewModel>(
+        ? StreamBuilder<ViewModel>(
             stream: stream,
             builder: (context, snapshot) => widget.builder(
                   context,
