@@ -100,7 +100,11 @@ typedef OnWillChangeCallback<ViewModel> = void Function(ViewModel viewModel);
 /// it will only be called if the `ViewModel` changes.
 ///
 /// This can be useful for running certain animations after the build is
-/// complete
+/// complete.
+///
+/// Note: Using a [BuildContext] inside this callback can cause problems if
+/// the callback performs navigation. For navigation purposes, please use
+/// an [OnWillChangeCallback].
 typedef OnDidChangeCallback<ViewModel> = void Function(ViewModel viewModel);
 
 /// A function that will be run after the Widget is built the first time.
@@ -188,7 +192,11 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// it will only be called if the `ViewModel` changes.
   ///
   /// This can be useful for running certain animations after the build is
-  /// complete
+  /// complete.
+  ///
+  /// Note: Using a [BuildContext] inside this callback can cause problems if
+  /// the callback performs navigation. For navigation purposes, please use
+  /// [onWillChange].
   final OnDidChangeCallback<ViewModel> onDidChange;
 
   /// A function that will be run after the Widget is built the first time.
@@ -276,6 +284,10 @@ class StoreBuilder<S> extends StatelessWidget {
   ///
   /// This can be useful for running certain animations after the build is
   /// complete
+  ///
+  /// Note: Using a [BuildContext] inside this callback can cause problems if
+  /// the callback performs navigation. For navigation purposes, please use
+  /// [onWillChange].
   final OnDidChangeCallback<Store<S>> onDidChange;
 
   /// A function that will be run after the Widget is built the first time.
