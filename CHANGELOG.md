@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.2
+
+  * Add `onDidChange` -- This callback will be run after the ViewModel has changed and the builder method is called
+  * Add `onInitialBuild` -- This callback will be run after the builder method is called the first time
+
 ## 0.5.1
 
   * Add more advice to error message

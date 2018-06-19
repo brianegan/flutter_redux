@@ -26,7 +26,7 @@ class StoreProvider<S> extends InheritedWidget {
     final StoreProvider<S> provider =
         context.inheritFromWidgetOfExactType(type);
 
-    if (provider == null) throw new StoreProviderError(type);
+    if (provider == null) throw StoreProviderError(type);
 
     return provider._store;
   }
@@ -85,7 +85,7 @@ typedef OnDisposeCallback<S> = void Function(
 /// your `converter` function.
 typedef IgnoreChangeTest<S> = bool Function(S state);
 
-/// A function that will be run on State change.
+/// A function that will be run on State change, before the build method.
 ///
 /// This function is passed the `ViewModel`, and if `distinct` is `true`,
 /// it will only be called if the `ViewModel` changes.
@@ -93,6 +93,28 @@ typedef IgnoreChangeTest<S> = bool Function(S state);
 /// This can be useful for imperative calls to things like Navigator,
 /// TabController, etc
 typedef OnWillChangeCallback<ViewModel> = void Function(ViewModel viewModel);
+
+/// A function that will be run on State change, after the build method.
+///
+/// This function is passed the `ViewModel`, and if `distinct` is `true`,
+/// it will only be called if the `ViewModel` changes.
+///
+/// This can be useful for running certain animations after the build is
+/// complete.
+///
+/// Note: Using a [BuildContext] inside this callback can cause problems if
+/// the callback performs navigation. For navigation purposes, please use
+/// an [OnWillChangeCallback].
+typedef OnDidChangeCallback<ViewModel> = void Function(ViewModel viewModel);
+
+/// A function that will be run after the Widget is built the first time.
+///
+/// This function is passed the initial `ViewModel` created by the [converter]
+/// function.
+///
+/// This can be useful for starting certain animations, such as showing
+/// Snackbars, after the Widget is built the first time.
+typedef OnInitialBuildCallback<ViewModel> = void Function(ViewModel viewModel);
 
 /// Build a widget based on the state of the [Store].
 ///
@@ -155,7 +177,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// your [converter] function.
   final IgnoreChangeTest<S> ignoreChange;
 
-  /// A function that will be run on State change.
+  /// A function that will be run on State change, before the Widget is built.
   ///
   /// This function is passed the `ViewModel`, and if `distinct` is `true`,
   /// it will only be called if the `ViewModel` changes.
@@ -163,6 +185,28 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// This can be useful for imperative calls to things like Navigator,
   /// TabController, etc
   final OnWillChangeCallback<ViewModel> onWillChange;
+
+  /// A function that will be run on State change, after the Widget is built.
+  ///
+  /// This function is passed the `ViewModel`, and if `distinct` is `true`,
+  /// it will only be called if the `ViewModel` changes.
+  ///
+  /// This can be useful for running certain animations after the build is
+  /// complete.
+  ///
+  /// Note: Using a [BuildContext] inside this callback can cause problems if
+  /// the callback performs navigation. For navigation purposes, please use
+  /// [onWillChange].
+  final OnDidChangeCallback<ViewModel> onDidChange;
+
+  /// A function that will be run after the Widget is built the first time.
+  ///
+  /// This function is passed the initial `ViewModel` created by the [converter]
+  /// function.
+  ///
+  /// This can be useful for starting certain animations, such as showing
+  /// Snackbars, after the Widget is built the first time.
+  final OnInitialBuildCallback<ViewModel> onInitialBuild;
 
   StoreConnector({
     Key key,
@@ -174,13 +218,15 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
     this.rebuildOnChange = true,
     this.ignoreChange,
     this.onWillChange,
+    this.onDidChange,
+    this.onInitialBuild,
   })  : assert(builder != null),
         assert(converter != null),
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return new _StoreStreamListener<S, ViewModel>(
+    return _StoreStreamListener<S, ViewModel>(
       store: StoreProvider.of<S>(context),
       builder: builder,
       converter: converter,
@@ -190,6 +236,8 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
       rebuildOnChange: rebuildOnChange,
       ignoreChange: ignoreChange,
       onWillChange: onWillChange,
+      onDidChange: onDidChange,
+      onInitialBuild: onInitialBuild,
     );
   }
 }
@@ -226,11 +274,27 @@ class StoreBuilder<S> extends StatelessWidget {
   /// your State tree.
   final OnDisposeCallback<S> onDispose;
 
-  /// A function that will be run on State change.
+  /// A function that will be run on State change, before the Widget is built.
   ///
   /// This can be useful for imperative calls to things like Navigator,
   /// TabController, etc
   final OnWillChangeCallback<Store<S>> onWillChange;
+
+  /// A function that will be run on State change, after the Widget is built.
+  ///
+  /// This can be useful for running certain animations after the build is
+  /// complete
+  ///
+  /// Note: Using a [BuildContext] inside this callback can cause problems if
+  /// the callback performs navigation. For navigation purposes, please use
+  /// [onWillChange].
+  final OnDidChangeCallback<Store<S>> onDidChange;
+
+  /// A function that will be run after the Widget is built the first time.
+  ///
+  /// This can be useful for starting certain animations, such as showing
+  /// Snackbars, after the Widget is built the first time.
+  final OnInitialBuildCallback<Store<S>> onInitialBuild;
 
   StoreBuilder({
     Key key,
@@ -239,18 +303,22 @@ class StoreBuilder<S> extends StatelessWidget {
     this.onDispose,
     this.rebuildOnChange = true,
     this.onWillChange,
+    this.onDidChange,
+    this.onInitialBuild,
   })  : assert(builder != null),
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return new StoreConnector<S, Store<S>>(
+    return StoreConnector<S, Store<S>>(
       builder: builder,
       converter: _identity,
       rebuildOnChange: rebuildOnChange,
       onInit: onInit,
       onDispose: onDispose,
       onWillChange: onWillChange,
+      onDidChange: onDidChange,
+      onInitialBuild: onInitialBuild,
     );
   }
 }
@@ -266,6 +334,8 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
   final OnDisposeCallback<S> onDispose;
   final IgnoreChangeTest<S> ignoreChange;
   final OnWillChangeCallback<ViewModel> onWillChange;
+  final OnDidChangeCallback<ViewModel> onDidChange;
+  final OnInitialBuildCallback<ViewModel> onInitialBuild;
 
   _StoreStreamListener({
     Key key,
@@ -278,11 +348,13 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
     this.rebuildOnChange = true,
     this.ignoreChange,
     this.onWillChange,
+    this.onDidChange,
+    this.onInitialBuild,
   }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return new _StoreStreamListenerState<S, ViewModel>();
+    return _StoreStreamListenerState<S, ViewModel>();
   }
 }
 
@@ -293,10 +365,6 @@ class _StoreStreamListenerState<S, ViewModel>
 
   @override
   void initState() {
-    if (widget.onInit != null) {
-      widget.onInit(widget.store);
-    }
-
     _init();
 
     super.initState();
@@ -321,7 +389,17 @@ class _StoreStreamListenerState<S, ViewModel>
   }
 
   void _init() {
+    if (widget.onInit != null) {
+      widget.onInit(widget.store);
+    }
+
     latestValue = widget.converter(widget.store);
+
+    if (widget.onInitialBuild != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onInitialBuild(latestValue);
+      });
+    }
 
     Stream<S> _stream = widget.store.onChange;
 
@@ -344,12 +422,18 @@ class _StoreStreamListenerState<S, ViewModel>
     // After each ViewModel is emitted from the Stream, we update the
     // latestValue. Important: This must be done after all other optional
     // transformations, such as ignoreChange.
-    stream = stream
-        .transform(new StreamTransformer.fromHandlers(handleData: (vm, sink) {
+    stream =
+        stream.transform(StreamTransformer.fromHandlers(handleData: (vm, sink) {
       latestValue = vm;
 
       if (widget.onWillChange != null) {
         widget.onWillChange(latestValue);
+      }
+
+      if (widget.onDidChange != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          widget.onDidChange(latestValue);
+        });
       }
 
       sink.add(vm);
@@ -359,7 +443,7 @@ class _StoreStreamListenerState<S, ViewModel>
   @override
   Widget build(BuildContext context) {
     return widget.rebuildOnChange
-        ? new StreamBuilder<ViewModel>(
+        ? StreamBuilder<ViewModel>(
             stream: stream,
             builder: (context, snapshot) => widget.builder(
                   context,
