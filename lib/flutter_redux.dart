@@ -78,7 +78,7 @@ typedef OnDisposeCallback<S> = void Function(
 /// it can be best to ignore the State change while your animation completes.
 ///
 /// To ignore a change, provide a function that returns true or false. If the
-/// returned value is false, the change will be ignored.
+/// returned value is true, the change will be ignored.
 ///
 /// If you ignore a change, and the framework needs to rebuild the Widget, the
 /// `builder` function will be called with the latest `ViewModel` produced by
