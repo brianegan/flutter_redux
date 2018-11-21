@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.3
+
+  * Remove dependency on test package.
+
 ## 0.5.2
 
   * Add `onDidChange` -- This callback will be run after the ViewModel has changed and the builder method is called
