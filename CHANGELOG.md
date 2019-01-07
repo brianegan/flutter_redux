@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.3
+
+  * Maintenance update
+      * Remove dependency on test package, conflicts with latest Flutter
+      * Update docs
+      * Update example dependencies to latest versions
+      * Apply stricter analysis options
+
 ## 0.5.2
 
   * Add `onDidChange` -- This callback will be run after the ViewModel has changed and the builder method is called

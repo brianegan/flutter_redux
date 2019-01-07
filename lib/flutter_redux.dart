@@ -12,6 +12,8 @@ import 'package:redux/redux.dart';
 class StoreProvider<S> extends InheritedWidget {
   final Store<S> _store;
 
+  /// Create a [StoreProvider] by passing in the required [store] and [child]
+  /// parameters.
   const StoreProvider({
     Key key,
     @required Store<S> store,
@@ -21,10 +23,28 @@ class StoreProvider<S> extends InheritedWidget {
         _store = store,
         super(key: key, child: child);
 
+  /// A method that can be called by descendant Widgets to retrieve the Store
+  /// from the StoreProvider.
+  ///
+  /// Important: When using this method, pass through complete type information
+  /// or Flutter will be unable to find the correct StoreProvider!
+  ///
+  /// ### Example
+  ///
+  /// ```
+  /// class MyWidget extends StatelessWidget {
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     final store = StoreProvider.of<int>(context);
+  ///
+  ///     return Text('${store.state}');
+  ///   }
+  /// }
+  /// ```
   static Store<S> of<S>(BuildContext context) {
     final type = _typeOf<StoreProvider<S>>();
-    final StoreProvider<S> provider =
-        context.inheritFromWidgetOfExactType(type);
+    final provider =
+        context.inheritFromWidgetOfExactType(type) as StoreProvider<S>;
 
     if (provider == null) throw StoreProviderError(type);
 
@@ -35,7 +55,8 @@ class StoreProvider<S> extends InheritedWidget {
   static Type _typeOf<T>() => T;
 
   @override
-  bool updateShouldNotify(StoreProvider<S> old) => _store != old._store;
+  bool updateShouldNotify(StoreProvider<S> oldWidget) =>
+      _store != oldWidget._store;
 }
 
 /// Build a Widget using the [BuildContext] and [ViewModel]. The [ViewModel] is
@@ -109,7 +130,7 @@ typedef OnDidChangeCallback<ViewModel> = void Function(ViewModel viewModel);
 
 /// A function that will be run after the Widget is built the first time.
 ///
-/// This function is passed the initial `ViewModel` created by the [converter]
+/// This function is passed the initial `ViewModel` created by the `converter`
 /// function.
 ///
 /// This can be useful for starting certain animations, such as showing
@@ -208,6 +229,12 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// Snackbars, after the Widget is built the first time.
   final OnInitialBuildCallback<ViewModel> onInitialBuild;
 
+  /// Create a [StoreConnector] by passing in the required [converter] and
+  /// [builder] functions.
+  ///
+  /// You can also specify a number of additional parameters that allow you to
+  /// modify the behavior of the StoreConnector. Please see the documentation
+  /// for each option for more info.
   StoreConnector({
     Key key,
     @required this.builder,
@@ -296,6 +323,7 @@ class StoreBuilder<S> extends StatelessWidget {
   /// Snackbars, after the Widget is built the first time.
   final OnInitialBuildCallback<Store<S>> onInitialBuild;
 
+  /// Create's a Widget based on the Store.
   StoreBuilder({
     Key key,
     @required this.builder,
@@ -401,7 +429,7 @@ class _StoreStreamListenerState<S, ViewModel>
       });
     }
 
-    Stream<S> _stream = widget.store.onChange;
+    var _stream = widget.store.onChange;
 
     if (widget.ignoreChange != null) {
       _stream = _stream.where((state) => !widget.ignoreChange(state));
@@ -454,15 +482,22 @@ class _StoreStreamListenerState<S, ViewModel>
   }
 }
 
+/// If the StoreProvider.of method fails, this error will be thrown.
+///
+/// Often, when the `of` method fails, it is difficult to understand why since
+/// there can be multiple causes. This error explains those causes so the user
+/// can understand and fix the issue.
 class StoreProviderError extends Error {
+  /// The type of the class the user tried to retrieve
   Type type;
 
+  /// Creates a StoreProviderError
   StoreProviderError(this.type);
 
+  @override
   String toString() {
     return '''Error: No $type found. To fix, please try:
           
-  * Using Dart 2 (required) by using the --preview-dart-2 flag
   * Wrapping your MaterialApp with the StoreProvider<State>, 
   rather than an individual Route
   * Providing full type information to your Store<State>, 
