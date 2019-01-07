@@ -2,7 +2,11 @@
 
 ## 0.5.3
 
-  * Remove dependency on test package.
+  * Maintenance update
+      * Remove dependency on test package, conflicts with latest Flutter
+      * Update docs
+      * Update example dependencies to latest versions
+      * Apply stricter analysis options
 
 ## 0.5.2
 

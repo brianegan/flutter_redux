@@ -9,7 +9,7 @@ void main() {
         (WidgetTester tester) async {
       final store = Store<String>(
         identityReducer,
-        initialState: "I",
+        initialState: 'I',
       );
       final widget = StoreProvider<String>(
         store: store,
@@ -18,8 +18,8 @@ void main() {
 
       await tester.pumpWidget(widget);
 
-      StoreCaptor captor =
-          tester.firstWidget(find.byKey(StoreCaptor.captorKey));
+      final captor =
+          tester.firstWidget<StoreCaptor>(find.byKey(StoreCaptor.captorKey));
 
       expect(captor.store, store);
     });
@@ -28,7 +28,7 @@ void main() {
         (WidgetTester tester) async {
       final store = Store<String>(
         identityReducer,
-        initialState: "I",
+        initialState: 'I',
       );
       final widget = StoreProvider<String>(
         store: store,
@@ -52,13 +52,13 @@ void main() {
         );
       }
 
-      await tester.pumpWidget(widget("I"));
-      await tester.pumpWidget(widget("A"));
+      await tester.pumpWidget(widget('I'));
+      await tester.pumpWidget(widget('A'));
 
-      StoreCaptor captor =
-          tester.firstWidget(find.byKey(StoreCaptor.captorKey));
+      final captor =
+          tester.firstWidget<StoreCaptor>(find.byKey(StoreCaptor.captorKey));
 
-      expect(captor.store.state, "A");
+      expect(captor.store.state, 'A');
     });
   });
 
@@ -66,7 +66,7 @@ void main() {
     testWidgets('initially builds from the current state of the store',
         (WidgetTester tester) async {
       final widget = StoreProvider<String>(
-        store: Store<String>(identityReducer, initialState: "I"),
+        store: Store<String>(identityReducer, initialState: 'I'),
         child: StoreBuilder<String>(
           builder: (context, store) {
             return Text(
@@ -79,13 +79,13 @@ void main() {
 
       await tester.pumpWidget(widget);
 
-      expect(find.text("I"), findsOneWidget);
+      expect(find.text('I'), findsOneWidget);
     });
 
     testWidgets('can convert the store to a ViewModel',
         (WidgetTester tester) async {
       final widget = StoreProvider<String>(
-        store: Store<String>(identityReducer, initialState: "I"),
+        store: Store<String>(identityReducer, initialState: 'I'),
         child: StoreConnector<String, String>(
           converter: selector,
           builder: (context, latest) {
@@ -99,14 +99,14 @@ void main() {
 
       await tester.pumpWidget(widget);
 
-      expect(find.text("I"), findsOneWidget);
+      expect(find.text('I'), findsOneWidget);
     });
 
     testWidgets('builds the latest state of the store after a change event',
         (WidgetTester tester) async {
       final store = Store<String>(
         identityReducer,
-        initialState: "I",
+        initialState: 'I',
       );
       final widget = StoreProvider<String>(
         store: store,
@@ -124,12 +124,12 @@ void main() {
       await tester.pumpWidget(widget);
 
       // Dispatch a action
-      store.dispatch("A");
+      store.dispatch('A');
 
       // Build the widget again with the state
       await tester.pumpWidget(widget);
 
-      expect(find.text("A"), findsOneWidget);
+      expect(find.text('A'), findsOneWidget);
     });
 
     testWidgets('rebuilds by default whenever the store emits a change',
@@ -137,7 +137,7 @@ void main() {
       var numBuilds = 0;
       final store = Store<String>(
         identityReducer,
-        initialState: "I",
+        initialState: 'I',
       );
       final widget = StoreProvider<String>(
         store: store,
@@ -157,7 +157,7 @@ void main() {
       expect(numBuilds, 1);
 
       // Dispatch the exact same event. This should still trigger a rebuild
-      store.dispatch("I");
+      store.dispatch('I');
 
       await tester.pumpWidget(widget);
 
@@ -169,7 +169,7 @@ void main() {
       var numBuilds = 0;
       final store = Store<String>(
         identityReducer,
-        initialState: "I",
+        initialState: 'I',
       );
       final widget = StoreProvider<String>(
         store: store,
@@ -194,7 +194,7 @@ void main() {
       // false.
       //
       // By default, this should still trigger a rebuild
-      store.dispatch("I");
+      store.dispatch('I');
 
       await tester.pumpWidget(widget);
 
@@ -206,7 +206,7 @@ void main() {
       var numBuilds = 0;
       final store = Store<String>(
         identityReducer,
-        initialState: "I",
+        initialState: 'I',
       );
       final widget = StoreProvider<String>(
         store: store,
@@ -242,7 +242,7 @@ void main() {
       final counter = CallCounter<Store<String>>();
       final store = Store<String>(
         identityReducer,
-        initialState: "A",
+        initialState: 'A',
       );
       final Widget Function() widget = () {
         return StoreProvider<String>(
@@ -266,7 +266,7 @@ void main() {
       expect(counter.callCount, 1);
       expect(numBuilds, 1);
 
-      store.dispatch("A");
+      store.dispatch('A');
 
       // Rebuild the widget
       await tester.pumpWidget(widget());
@@ -276,7 +276,7 @@ void main() {
       expect(numBuilds, 2);
       expect(counter.callCount, 1);
 
-      store.dispatch("just to be sure");
+      store.dispatch('just to be sure');
 
       // Rebuild the widget
       await tester.pumpWidget(widget());
@@ -292,7 +292,7 @@ void main() {
       String currentState;
       final store = Store<String>(
         identityReducer,
-        initialState: "I",
+        initialState: 'I',
       );
       final Widget Function() widget = () {
         return StoreProvider<String>(
@@ -300,7 +300,7 @@ void main() {
           child: StoreConnector<String, String>(
             converter: selector,
             onInit: (store) {
-              store.dispatch("A");
+              store.dispatch('A');
             },
             builder: (context, state) {
               currentState = state;
@@ -314,12 +314,12 @@ void main() {
       await tester.pumpWidget(widget());
 
       // Expect the Widget to be rebuilt and the onInit method to be called
-      expect(currentState, "A");
+      expect(currentState, 'A');
     });
 
     testWidgets('runs a function before rebuild', (WidgetTester tester) async {
       final states = <BuildState>[];
-      final store = Store<String>(identityReducer, initialState: "A");
+      final store = Store<String>(identityReducer, initialState: 'A');
 
       final widget = () => StoreProvider<String>(
             store: store,
@@ -337,7 +337,7 @@ void main() {
 
       expect(states, [BuildState.during]);
 
-      store.dispatch("A");
+      store.dispatch('A');
       await tester.pumpWidget(widget());
 
       expect(states, [BuildState.during, BuildState.before, BuildState.during]);
@@ -346,7 +346,7 @@ void main() {
     testWidgets('runs a function after initial build',
         (WidgetTester tester) async {
       final states = <BuildState>[];
-      final store = Store<String>(identityReducer, initialState: "A");
+      final store = Store<String>(identityReducer, initialState: 'A');
 
       final widget = () => StoreProvider<String>(
             store: store,
@@ -372,7 +372,7 @@ void main() {
     testWidgets('runs a function after build when the vm changes',
         (WidgetTester tester) async {
       final states = <BuildState>[];
-      final store = Store<String>(identityReducer, initialState: "A");
+      final store = Store<String>(identityReducer, initialState: 'A');
 
       final widget = () => StoreProvider<String>(
             store: store,
@@ -409,7 +409,7 @@ void main() {
       final counter = CallCounter<Store<String>>();
       final store = Store<String>(
         identityReducer,
-        initialState: "A",
+        initialState: 'A',
       );
       final Widget Function() widget = () {
         return StoreProvider<String>(
@@ -428,7 +428,7 @@ void main() {
       // onDispose should not be called yet.
       expect(counter.callCount, 0);
 
-      store.dispatch("A");
+      store.dispatch('A');
 
       // Rebuild a different widget tree. Expect this to trigger `onDispose`.
       await tester.pumpWidget(Container());
@@ -442,7 +442,7 @@ void main() {
       var numBuilds = 0;
       final store = Store<String>(
         identityReducer,
-        initialState: "I",
+        initialState: 'I',
       );
       final widget = StoreProvider<String>(
         store: store,
@@ -464,7 +464,7 @@ void main() {
       expect(numBuilds, 1);
 
       // Dispatch another action of the same type
-      store.dispatch("I");
+      store.dispatch('I');
 
       await tester.pumpWidget(widget);
 
@@ -472,7 +472,7 @@ void main() {
 
       // Dispatch another action of a different type. This should trigger another
       // rebuild
-      store.dispatch("A");
+      store.dispatch('A');
 
       await tester.pumpWidget(widget);
 
@@ -487,7 +487,7 @@ void main() {
       final counter = CallCounter<Store<String>>();
       final store = Store<String>(
         identityReducer,
-        initialState: "A",
+        initialState: 'A',
       );
       final Widget Function() widget = () {
         return StoreProvider<String>(
@@ -510,7 +510,7 @@ void main() {
       expect(counter.callCount, 1);
       expect(numBuilds, 1);
 
-      store.dispatch("A");
+      store.dispatch('A');
 
       // Rebuild the widget
       await tester.pumpWidget(widget());
@@ -520,7 +520,7 @@ void main() {
       expect(numBuilds, 2);
       expect(counter.callCount, 1);
 
-      store.dispatch("just to be sure");
+      store.dispatch('just to be sure');
 
       // Rebuild the widget
       await tester.pumpWidget(widget());
@@ -533,7 +533,7 @@ void main() {
 
     testWidgets('runs a function before rebuild', (WidgetTester tester) async {
       final counter = CallCounter<Store<String>>();
-      final store = Store(identityReducer, initialState: "A");
+      final store = Store(identityReducer, initialState: 'A');
 
       final widget = () => StoreProvider(
             store: store,
@@ -547,7 +547,7 @@ void main() {
 
       expect(counter.callCount, 0);
 
-      store.dispatch("A");
+      store.dispatch('A');
       await tester.pumpWidget(widget());
 
       expect(counter.callCount, 1);
@@ -556,7 +556,7 @@ void main() {
     testWidgets('runs a function after initial build',
         (WidgetTester tester) async {
       final states = <BuildState>[];
-      final store = Store<String>(identityReducer, initialState: "A");
+      final store = Store<String>(identityReducer, initialState: 'A');
 
       final widget = () => StoreProvider<String>(
             store: store,
@@ -581,7 +581,7 @@ void main() {
     testWidgets('runs a function after build when the vm changes',
         (WidgetTester tester) async {
       final states = <BuildState>[];
-      final store = Store<String>(identityReducer, initialState: "A");
+      final store = Store<String>(identityReducer, initialState: 'A');
 
       final widget = () => StoreProvider<String>(
             store: store,
@@ -617,7 +617,7 @@ void main() {
       final counter = CallCounter<Store<String>>();
       final store = Store<String>(
         identityReducer,
-        initialState: "init",
+        initialState: 'init',
       );
       final Widget Function() widget = () {
         return StoreProvider<String>(
@@ -634,7 +634,7 @@ void main() {
 
       expect(counter.callCount, 0);
 
-      store.dispatch("A");
+      store.dispatch('A');
 
       // Rebuild a different widget, should trigger a dispose as the
       // StoreBuilder has been removed from the Widget tree.
@@ -649,7 +649,7 @@ String selector(Store<String> store) => store.state;
 
 // ignore: must_be_immutable
 class StoreCaptor<S> extends StatelessWidget {
-  static const Key captorKey = const Key("StoreCaptor");
+  static const Key captorKey = Key('StoreCaptor');
 
   Store<S> store;
 
