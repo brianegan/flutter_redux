@@ -32,7 +32,7 @@ Dart 2 requires more strict typing (yay!), and gives us the option to make getti
   * [Todo app](https://github.com/brianegan/flutter_architecture_samples/tree/master/example/redux) - a more complete example, with persistence, routing, and nested state.
   
 ### Companion Libraries
-
+  * [flipperkit_redux_middleware](https://pub.dartlang.org/packages/flipperkit_redux_middleware) - Redux Inspector (based on Flipper) for Flutter Redux apps
   * [flutter_redux_dev_tools](https://pub.dartlang.org/packages/flutter_redux_dev_tools) - Time Travel Dev Tools for Flutter Redux apps
   * [redux_persist](https://github.com/Cretezy/redux_persist) - Persist Redux State   
  
