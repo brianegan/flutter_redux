@@ -69,6 +69,7 @@ class FlutterReduxApp extends StatelessWidget {
                 // count. No need to manually manage subscriptions or Streams!
                 new StoreConnector<int, String>(
                   converter: (store) => store.state.toString(),
+                  distinct: true,
                   builder: (context, count) {
                     return new Text(
                       count,
