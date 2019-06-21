@@ -68,7 +68,7 @@ class FlutterReduxApp extends StatelessWidget {
                 // the Widget will be automatically rebuilt with the latest
                 // count. No need to manually manage subscriptions or Streams!
                 new StoreConnector<int, String>(
-                  converter: (store) => store.state.toString(),
+                  converter: (store) => "store.state.toString()",
                   distinct: true,
                   builder: (context, count) {
                     return new Text(
