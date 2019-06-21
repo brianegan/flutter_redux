@@ -2,6 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 
+class CounterViewModel {
+  CounterViewModel(@required this.count);
+  final int count;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is CounterViewModel && count == other.count;
+  }
+
+  @override
+  int get hashCode {
+    return count;
+  }
+}
+
 // One simple action: Increment
 enum Actions { Increment }
 
@@ -67,12 +83,12 @@ class FlutterReduxApp extends StatelessWidget {
                 // run through the reducer. After the reducer updates the state,
                 // the Widget will be automatically rebuilt with the latest
                 // count. No need to manually manage subscriptions or Streams!
-                new StoreConnector<int, String>(
-                  converter: (store) => "store.state.toString()",
+                new StoreConnector<int, CounterViewModel>(
+                  converter: (store) => new CounterViewModel(store.state),
                   distinct: true,
-                  builder: (context, count) {
+                  builder: (context, vm) {
                     return new Text(
-                      count,
+                      vm.count.toString(),
                       style: Theme.of(context).textTheme.display1,
                     );
                   },
