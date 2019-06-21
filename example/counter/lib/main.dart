@@ -8,13 +8,12 @@ class CounterViewModel {
 
   @override
   bool operator ==(Object other) {
-    if (identical(other, this)) return true;
-    return other is CounterViewModel && count == other.count;
+    return true;
   }
 
   @override
   int get hashCode {
-    return count;
+    return 1;
   }
 }
 
