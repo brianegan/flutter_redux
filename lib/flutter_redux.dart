@@ -413,6 +413,10 @@ class _StoreStreamListenerState<S, ViewModel>
       _init();
     }
 
+    if (widget.converter != oldWidget.converter) {
+      _update();
+    }
+
     super.didUpdateWidget(oldWidget);
   }
 
@@ -468,15 +472,67 @@ class _StoreStreamListenerState<S, ViewModel>
     }));
   }
 
+  void _update() {
+    latestValue = widget.converter(widget.store);
+
+    var _stream = widget.store.onChange;
+
+    if (widget.ignoreChange != null) {
+      _stream = _stream.where((state) => !widget.ignoreChange(state));
+    }
+
+    stream = _stream.map((_) => widget.converter(widget.store));
+
+    // Don't use `Stream.distinct` because it cannot capture the initial
+    // ViewModel produced by the `converter`.
+    if (widget.distinct) {
+      stream = stream.where((vm) {
+        final isDistinct = vm != latestValue;
+
+        return isDistinct;
+      });
+    }
+
+    // After each ViewModel is emitted from the Stream, we update the
+    // latestValue. Important: This must be done after all other optional
+    // transformations, such as ignoreChange.
+    stream =
+        stream.transform(StreamTransformer.fromHandlers(handleData: (vm, sink) {
+      latestValue = vm;
+
+      if (widget.onWillChange != null) {
+        widget.onWillChange(latestValue);
+      }
+
+      if (widget.onDidChange != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          widget.onDidChange(latestValue);
+        });
+      }
+
+      sink.add(vm);
+    }));
+  }
+
   @override
   Widget build(BuildContext context) {
     return widget.rebuildOnChange
         ? StreamBuilder<ViewModel>(
             stream: stream,
-            builder: (context, snapshot) => widget.builder(
+            builder: (context, snapshot) {
+              if (snapshot.hasData &&
+                  snapshot.connectionState != ConnectionState.waiting) {
+                return widget.builder(
                   context,
-                  snapshot.hasData ? snapshot.data : latestValue,
-                ),
+                  snapshot.data,
+                );
+              } else {
+                return widget.builder(
+                  context,
+                  latestValue,
+                );
+              }
+            },
           )
         : widget.builder(context, latestValue);
   }
