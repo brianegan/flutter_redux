@@ -30,6 +30,7 @@ Dart 2 requires more strict typing (yay!), and gives us the option to make getti
   * [Simple example](https://github.com/brianegan/flutter_redux/tree/master/example/counter) - a port of the standard "Counter Button" example from Flutter
   * [Github Search](https://github.com/brianegan/flutter_redux/tree/master/example/github_search) - an example of how to search as a user types, demonstrating both the Middleware and Epic approaches.
   * [Todo app](https://github.com/brianegan/flutter_architecture_samples/tree/master/redux) - a more complete example, with persistence, routing, and nested state.
+  * [Timy Messenger](https://github.com/janoodleFTW/timy-messenger) - large open source app that uses flutter_redux together with Firebase Firestore.
   
 ### Companion Libraries
   * [flipperkit_redux_middleware](https://pub.dartlang.org/packages/flipperkit_redux_middleware) - Redux Inspector (use [Flutter Debugger](https://github.com/blankapp/flutter-debugger)) for Flutter Redux apps
