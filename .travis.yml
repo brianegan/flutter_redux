@@ -5,7 +5,7 @@ before_script:
   - git clone https://github.com/flutter/flutter.git -b stable --depth 1
   - ./flutter/bin/flutter doctor
 script:
-  - ./flutter/bin/flutter analyze
+  - ./flutter/bin/flutter analyze ./lib
   - ./flutter/bin/flutter test --coverage --coverage-path=lcov.info
 after_success:
   - bash <(curl -s https://codecov.io/bash)
