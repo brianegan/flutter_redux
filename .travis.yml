@@ -1,13 +1,33 @@
-os:
-  - linux
+os: linux
 sudo: false
-before_script:
-  - git clone https://github.com/flutter/flutter.git -b stable --depth 1
-  - ./flutter/bin/flutter doctor
-script:
-  - ./flutter/bin/flutter test --coverage --coverage-path=lcov.info
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+env:
+  global:
+    - FLUTTER_CHANNEL=stable
+
+install:
+  - git clone https://github.com/flutter/flutter.git -b $FLUTTER_CHANNEL
+  - export PATH="$PATH:`pwd`/flutter/bin/cache/dart-sdk/bin"
+  - export PATH="$PATH:`pwd`/flutter/bin"
+  - flutter doctor -v
+  - flutter packages get
+
 cache:
   directories:
     - $HOME/.pub-cache
+
+static_analysis: &static_analysis
+  name: "Static analysis"
+  script: flutter analyze --no-current-package $TRAVIS_BUILD_DIR/lib
+
+unit_tests: &unit_tests
+  name: "Unit tests"
+  script: flutter test --coverage
+  after_script: bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info
+
+jobs:
+  include:
+    - <<: *static_analysis
+    - <<: *unit_tests
+
+stages:
+  - name: test
