@@ -14,7 +14,7 @@ class StoreProvider<S> extends InheritedWidget {
 
   /// Create a [StoreProvider] by passing in the required [store] and [child]
   /// parameters.
-const StoreProvider({
+  const StoreProvider({
     Key key,
     @required Store<S> store,
     @required Widget child,
