@@ -235,7 +235,7 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// You can also specify a number of additional parameters that allow you to
   /// modify the behavior of the StoreConnector. Please see the documentation
   /// for each option for more info.
-  StoreConnector({
+  const StoreConnector({
     Key key,
     @required this.builder,
     @required this.converter,
@@ -324,7 +324,7 @@ class StoreBuilder<S> extends StatelessWidget {
   final OnInitialBuildCallback<Store<S>> onInitialBuild;
 
   /// Create's a Widget based on the Store.
-  StoreBuilder({
+  const StoreBuilder({
     Key key,
     @required this.builder,
     this.onInit,
@@ -365,7 +365,7 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
   final OnDidChangeCallback<ViewModel> onDidChange;
   final OnInitialBuildCallback<ViewModel> onInitialBuild;
 
-  _StoreStreamListener({
+  const _StoreStreamListener({
     Key key,
     @required this.builder,
     @required this.store,
@@ -474,9 +474,9 @@ class _StoreStreamListenerState<S, ViewModel>
         ? StreamBuilder<ViewModel>(
             stream: stream,
             builder: (context, snapshot) => widget.builder(
-                  context,
-                  snapshot.hasData ? snapshot.data : latestValue,
-                ),
+              context,
+              snapshot.hasData ? snapshot.data : latestValue,
+            ),
           )
         : widget.builder(context, latestValue);
   }

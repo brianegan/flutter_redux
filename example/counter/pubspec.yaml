@@ -10,6 +10,7 @@ dev_dependencies:
     path: ../../
   flutter_test:
     sdk: flutter
+  pedantic: ^1.8.0+1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

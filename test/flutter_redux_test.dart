@@ -244,7 +244,7 @@ void main() {
         identityReducer,
         initialState: 'A',
       );
-      final Widget Function() widget = () {
+      Widget widget() {
         return StoreProvider<String>(
           store: store,
           child: StoreConnector<String, String>(
@@ -257,7 +257,7 @@ void main() {
             },
           ),
         );
-      };
+      }
 
       // Build the widget with the initial state
       await tester.pumpWidget(widget());
@@ -294,7 +294,7 @@ void main() {
         identityReducer,
         initialState: 'I',
       );
-      final Widget Function() widget = () {
+      Widget widget() {
         return StoreProvider<String>(
           store: store,
           child: StoreConnector<String, String>(
@@ -308,7 +308,7 @@ void main() {
             },
           ),
         );
-      };
+      }
 
       // Build the widget with the initial state
       await tester.pumpWidget(widget());
@@ -321,7 +321,7 @@ void main() {
       final states = <BuildState>[];
       final store = Store<String>(identityReducer, initialState: 'A');
 
-      final widget = () => StoreProvider<String>(
+      Widget widget() => StoreProvider<String>(
             store: store,
             child: StoreConnector<String, String>(
               onWillChange: (_) => states.add(BuildState.before),
@@ -348,7 +348,7 @@ void main() {
       final states = <BuildState>[];
       final store = Store<String>(identityReducer, initialState: 'A');
 
-      final widget = () => StoreProvider<String>(
+      Widget widget() => StoreProvider<String>(
             store: store,
             child: StoreConnector<String, String>(
               onInitialBuild: (_) => states.add(BuildState.after),
@@ -374,7 +374,7 @@ void main() {
       final states = <BuildState>[];
       final store = Store<String>(identityReducer, initialState: 'A');
 
-      final widget = () => StoreProvider<String>(
+      Widget widget() => StoreProvider<String>(
             store: store,
             child: StoreConnector<String, String>(
               onDidChange: (_) => states.add(BuildState.after),
@@ -411,7 +411,7 @@ void main() {
         identityReducer,
         initialState: 'A',
       );
-      final Widget Function() widget = () {
+      Widget widget() {
         return StoreProvider<String>(
           store: store,
           child: StoreConnector<String, String>(
@@ -420,7 +420,7 @@ void main() {
             builder: (context, latest) => Container(),
           ),
         );
-      };
+      }
 
       // Build the widget with the initial state
       await tester.pumpWidget(widget());
@@ -489,7 +489,7 @@ void main() {
         identityReducer,
         initialState: 'A',
       );
-      final Widget Function() widget = () {
+      Widget widget() {
         return StoreProvider<String>(
           store: store,
           child: StoreBuilder<String>(
@@ -501,7 +501,7 @@ void main() {
             },
           ),
         );
-      };
+      }
 
       // Build the widget with the initial state
       await tester.pumpWidget(widget());
@@ -535,13 +535,15 @@ void main() {
       final counter = CallCounter<Store<String>>();
       final store = Store(identityReducer, initialState: 'A');
 
-      final widget = () => StoreProvider(
-            store: store,
-            child: StoreBuilder<String>(
-              onWillChange: counter,
-              builder: (context, latest) => Container(),
-            ),
-          );
+      Widget widget() {
+        return StoreProvider(
+          store: store,
+          child: StoreBuilder<String>(
+            onWillChange: counter,
+            builder: (context, latest) => Container(),
+          ),
+        );
+      }
 
       await tester.pumpWidget(widget());
 
@@ -558,7 +560,7 @@ void main() {
       final states = <BuildState>[];
       final store = Store<String>(identityReducer, initialState: 'A');
 
-      final widget = () => StoreProvider<String>(
+      Widget widget() => StoreProvider<String>(
             store: store,
             child: StoreBuilder<String>(
               onInitialBuild: (_) => states.add(BuildState.after),
@@ -583,7 +585,7 @@ void main() {
       final states = <BuildState>[];
       final store = Store<String>(identityReducer, initialState: 'A');
 
-      final widget = () => StoreProvider<String>(
+      Widget widget() => StoreProvider<String>(
             store: store,
             child: StoreBuilder<String>(
               onDidChange: (_) => states.add(BuildState.after),
@@ -619,7 +621,7 @@ void main() {
         identityReducer,
         initialState: 'init',
       );
-      final Widget Function() widget = () {
+      Widget widget() {
         return StoreProvider<String>(
           store: store,
           child: StoreBuilder<String>(
@@ -627,7 +629,7 @@ void main() {
             builder: (context, store) => Container(),
           ),
         );
-      };
+      }
 
       // Build the widget with the initial state
       await tester.pumpWidget(widget());

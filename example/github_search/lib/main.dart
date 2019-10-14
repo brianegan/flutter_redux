@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:github_search/github_search_api.dart';
-import 'package:github_search/github_search_widget.dart';
+import 'package:github_search/github_client.dart';
 import 'package:github_search/redux.dart';
+import 'package:github_search/search_screen.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_epics/redux_epics.dart';
 
 void main() {
-  final store = new Store<SearchState>(searchReducer,
-      initialState: SearchState.initial(),
-      middleware: [
-//        SearchMiddleware(GithubApi()),
-        EpicMiddleware<SearchState>(SearchEpic(GithubApi())),
-      ]);
+  final store = Store<SearchState>(
+    searchReducer,
+    initialState: SearchInitial(),
+    middleware: [
+      // The following middleware both achieve the same goal: Load search
+      // results from github in response to SearchActions.
+      //
+      // One is implemented as a normal middleware, the other is implemented as
+      // an epic for demonstration purposes.
 
-  runApp(new RxDartGithubSearchApp(
+//        SearchMiddleware(GithubApi()),
+      EpicMiddleware<SearchState>(SearchEpic(GithubClient())),
+    ],
+  );
+
+  runApp(RxDartGithubSearchApp(
     store: store,
   ));
 }
@@ -26,15 +34,15 @@ class RxDartGithubSearchApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new StoreProvider<SearchState>(
+    return StoreProvider<SearchState>(
       store: store,
-      child: new MaterialApp(
+      child: MaterialApp(
         title: 'RxDart Github Search',
-        theme: new ThemeData(
+        theme: ThemeData(
           brightness: Brightness.dark,
           primarySwatch: Colors.grey,
         ),
-        home: new SearchScreen(),
+        home: SearchScreen(),
       ),
     );
   }
