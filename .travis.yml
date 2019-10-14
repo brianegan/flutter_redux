@@ -4,10 +4,10 @@ sudo: false
 before_script:
   - git clone https://github.com/flutter/flutter.git -b stable --depth 1
   - ./flutter/bin/flutter doctor
-  - ./flutter/bin/flutter packages get
 script:
+  - ./flutter/bin/flutter packages get
   - ./flutter/bin/cache/dart-sdk/bin/dartfmt -n ./lib --set-exit-if-changed
-  - ./flutter/bin/flutter analyze ./lib
+  - ./flutter/bin/flutter analyze --no-current-package $TRAVIS_BUILD_DIR/lib
   - ./flutter/bin/flutter test --coverage --coverage-path=lcov.info
 after_success:
   - bash <(curl -s https://codecov.io/bash)
