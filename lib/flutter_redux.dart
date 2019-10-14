@@ -6,12 +6,15 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:redux/redux.dart';
 
+/// Provides a Redux [Store] to all descendants of this Widget. This should
+/// generally be a root widget in your App. Connect to the Store provided
+/// by this Widget using a [StoreConnector] or [StoreBuilder].
 class StoreProvider<S> extends InheritedWidget {
   final Store<S> _store;
 
   /// Create a [StoreProvider] by passing in the required [store] and [child]
   /// parameters.
-  const StoreProvider({
+const StoreProvider({
     Key key,
     @required Store<S> store,
     @required Widget child,
