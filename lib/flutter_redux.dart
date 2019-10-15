@@ -426,7 +426,18 @@ class _StoreStreamListenerState<S, ViewModel>
 
   @override
   void initState() {
-    _init();
+    if (widget.onInit != null) {
+      widget.onInit(widget.store);
+    }
+
+    if (widget.onInitialBuild != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onInitialBuild(latestValue);
+      });
+    }
+
+    latestValue = widget.converter(widget.store);
+    _createStream();
 
     super.initState();
   }
@@ -442,63 +453,13 @@ class _StoreStreamListenerState<S, ViewModel>
 
   @override
   void didUpdateWidget(_StoreStreamListener<S, ViewModel> oldWidget) {
+    latestValue = widget.converter(widget.store);
+
     if (widget.store != oldWidget.store) {
-      _init();
+      _createStream();
     }
 
     super.didUpdateWidget(oldWidget);
-  }
-
-  void _init() {
-    if (widget.onInit != null) {
-      widget.onInit(widget.store);
-    }
-
-    latestValue = widget.converter(widget.store);
-
-    if (widget.onInitialBuild != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.onInitialBuild(latestValue);
-      });
-    }
-
-    var _stream = widget.store.onChange;
-
-    if (widget.ignoreChange != null) {
-      _stream = _stream.where((state) => !widget.ignoreChange(state));
-    }
-
-    stream = _stream.map((_) => widget.converter(widget.store));
-
-    // Don't use `Stream.distinct` because it cannot capture the initial
-    // ViewModel produced by the `converter`.
-    if (widget.distinct) {
-      stream = stream.where((vm) {
-        final isDistinct = vm != latestValue;
-
-        return isDistinct;
-      });
-    }
-
-    // After each ViewModel is emitted from the Stream, we update the
-    // latestValue. Important: This must be done after all other optional
-    // transformations, such as ignoreChange.
-    stream =
-        stream.transform(StreamTransformer.fromHandlers(handleData: (vm, sink) {
-      latestValue = vm;
-
-      if (widget.onWillChange != null) {
-        widget.onWillChange(latestValue);
-      }
-
-      if (widget.onDidChange != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          widget.onDidChange(latestValue);
-        });
-      }
-
-      sink.add(vm);
-    }));
   }
 
   @override
@@ -508,10 +469,59 @@ class _StoreStreamListenerState<S, ViewModel>
             stream: stream,
             builder: (context, snapshot) => widget.builder(
               context,
-              snapshot.hasData ? snapshot.data : latestValue,
+              latestValue,
             ),
           )
         : widget.builder(context, latestValue);
+  }
+
+  ViewModel _mapConverter(S state) {
+    return widget.converter(widget.store);
+  }
+
+  bool _whereDistinct(ViewModel vm) {
+    if (widget.distinct) {
+      return vm != latestValue;
+    }
+
+    return true;
+  }
+
+  bool _ignoreChange(S state) {
+    if (widget.ignoreChange != null) {
+      return !widget.ignoreChange(state);
+    }
+
+    return true;
+  }
+
+  void _createStream() {
+    stream = widget.store.onChange
+        .where(_ignoreChange)
+        .map(_mapConverter)
+        // Don't use `Stream.distinct` because it cannot capture the initial
+        // ViewModel produced by the `converter`.
+        .where(_whereDistinct)
+        // After each ViewModel is emitted from the Stream, we update the
+        // latestValue. Important: This must be done after all other optional
+        // transformations, such as ignoreChange.
+        .transform(StreamTransformer.fromHandlers(handleData: _handleChange));
+  }
+
+  void _handleChange(ViewModel vm, EventSink<ViewModel> sink) {
+    latestValue = vm;
+
+    if (widget.onWillChange != null) {
+      widget.onWillChange(latestValue);
+    }
+
+    if (widget.onDidChange != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onDidChange(latestValue);
+      });
+    }
+
+    sink.add(vm);
   }
 }
 
