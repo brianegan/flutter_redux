@@ -41,10 +41,13 @@ class StoreProvider<S> extends InheritedWidget {
   ///   }
   /// }
   /// ```
-  static Store<S> of<S>(BuildContext context) {
+  static Store<S> of<S>(BuildContext context, {bool listen = true}) {
     final type = _typeOf<StoreProvider<S>>();
-    final provider =
-        context.inheritFromWidgetOfExactType(type) as StoreProvider<S>;
+    final provider = (listen
+        ? context.inheritFromWidgetOfExactType(type)
+        : context
+            .ancestorInheritedElementForWidgetOfExactType(type)
+            ?.widget) as StoreProvider<S>;
 
     if (provider == null) throw StoreProviderError(type);
 
