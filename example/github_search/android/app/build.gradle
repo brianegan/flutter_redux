@@ -15,15 +15,14 @@ apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '24.0.1'
+    compileSdkVersion 28
 
     lintOptions {
         disable 'InvalidPackage'
     }
 
     defaultConfig {
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -40,7 +39,7 @@ flutter {
 }
 
 dependencies {
-    androidTestCompile 'com.android.support:support-annotations:25.0.0'
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile 'com.android.support.test:rules:0.5'
+    androidTestCompile 'androidx.annotation:annotation:1.0.0'
+    androidTestCompile 'androidx.test:runner:1.1.0'
+    androidTestCompile 'androidx.test:rules:1.1.0'
 }
