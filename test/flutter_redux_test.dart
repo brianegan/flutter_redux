@@ -164,6 +164,32 @@ void main() {
       expect(numBuilds, 2);
     });
 
+    testWidgets(
+        'builds the latest state of the store after a change event is triggered from initState',
+        (WidgetTester tester) async {
+      final store = Store<String>(
+        identityReducer,
+        initialState: 'I',
+      );
+      final widget = StoreProvider<String>(
+        store: store,
+        child: StoreConnector<String, String>(
+          converter: selector,
+          rebuildOnChange: false,
+          builder: (context, state) {
+            return StoreCaptorStatefull(state);
+          },
+        ),
+      );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget);
+
+      await tester.pumpWidget(widget);
+
+      expect(find.text('A'), findsOneWidget);
+    }, skip: true);
+
     testWidgets('does not rebuild if rebuildOnChange is set to false',
         (WidgetTester tester) async {
       var numBuilds = 0;
@@ -662,6 +688,33 @@ class StoreCaptor<S> extends StatelessWidget {
     store = StoreProvider.of<S>(context);
 
     return Container();
+  }
+}
+
+// ignore: must_be_immutable
+class StoreCaptorStatefull extends StatefulWidget {
+  static const Key captorKey = Key('StoreCaptorStatefull');
+
+  String state;
+
+  StoreCaptorStatefull(this.state, {Key key}) : super(key: key);
+
+  _StoreCaptorStatefullState createState() => _StoreCaptorStatefullState();
+}
+
+class _StoreCaptorStatefullState extends State<StoreCaptorStatefull> {
+  @override
+  void initState() {
+    super.initState();
+    StoreProvider.of<String>(context, listen: false).dispatch('A');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      widget.state,
+      textDirection: TextDirection.ltr,
+    );
   }
 }
 
