@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:github_search/redux.dart';
 import 'package:github_search/search_empty_view.dart';
+import 'package:github_search/search_error_view.dart';
 import 'package:github_search/search_initial_view.dart';
 import 'package:github_search/search_loading_view.dart';
 import 'package:github_search/search_result_view.dart';
@@ -57,6 +58,8 @@ class SearchScreen extends StatelessWidget {
       return SearchPopulatedView(state.result);
     } else if (state is SearchInitial) {
       return SearchInitialView();
+    } else if (state is SearchError) {
+      return SearchErrorWidget();
     }
 
     throw ArgumentError('No view for state: $state');
