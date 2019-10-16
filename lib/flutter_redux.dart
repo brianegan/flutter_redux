@@ -107,15 +107,6 @@ typedef OnDisposeCallback<S> = void Function(
 typedef IgnoreChangeTest<S> = bool Function(S state);
 
 /// A function that will be run on State change, before the build method.
-///
-/// This function is passed the `ViewModel`, and if `distinct` is `true`,
-/// it will only be called if the `ViewModel` changes.
-///
-/// This can be useful for imperative calls to things like Navigator,
-/// TabController, etc
-typedef OnWillChangeCallback<ViewModel> = void Function(ViewModel viewModel);
-
-/// A function that will be run on State change, before the build method.
 /// The same as [OnWillChangeCallback] except it provides the previous 
 /// `ViewModel`.
 /// 
@@ -124,7 +115,7 @@ typedef OnWillChangeCallback<ViewModel> = void Function(ViewModel viewModel);
 /// 
 /// This can be useful for triggering actions based on the previous 
 /// state.
-typedef OnWillChangeWithPrevCallback<ViewModel> 
+typedef OnWillChangeCallback<ViewModel> 
   = void Function(ViewModel prevViewModel, ViewModel newViewModel);
 
 /// A function that will be run on State change, after the build method.
@@ -216,19 +207,9 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// it will only be called if the `ViewModel` changes.
   ///
   /// This can be useful for imperative calls to things like Navigator,
-  /// TabController, etc
+  /// TabController, etc. This can also be useful for triggering actions 
+  /// based on the previous state.
   final OnWillChangeCallback<ViewModel> onWillChange;
-
-  /// A function that will be run on State change, before the build method.
-  /// The same as [OnWillChangeCallback] except it provides the previous 
-  /// `ViewModel`.
-  /// 
-  /// This function is passed the `ViewModel`, and if `distinct` is `true`,
-  /// it will only be called if the `ViewModel` changes.
-  /// 
-  /// This can be useful for triggering actions based on the previous 
-  /// state.
-  final OnWillChangeWithPrevCallback<ViewModel> onWillChangeWithPrev;
 
   /// A function that will be run on State change, after the Widget is built.
   ///
@@ -268,7 +249,6 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
     this.rebuildOnChange = true,
     this.ignoreChange,
     this.onWillChange,
-    this.onWillChangeWithPrev,
     this.onDidChange,
     this.onInitialBuild,
   })  : assert(builder != null),
@@ -287,7 +267,6 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
       rebuildOnChange: rebuildOnChange,
       ignoreChange: ignoreChange,
       onWillChange: onWillChange,
-      onWillChangeWithPrev: onWillChangeWithPrev,
       onDidChange: onDidChange,
       onInitialBuild: onInitialBuild,
     );
@@ -329,19 +308,9 @@ class StoreBuilder<S> extends StatelessWidget {
   /// A function that will be run on State change, before the Widget is built.
   ///
   /// This can be useful for imperative calls to things like Navigator,
-  /// TabController, etc
+  /// TabController, etc. This can also be useful for triggering actions 
+  /// based on the previous state.
   final OnWillChangeCallback<Store<S>> onWillChange;
-
-  /// A function that will be run on State change, before the build method.
-  /// The same as [OnWillChangeCallback] except it provides the previous 
-  /// `ViewModel`.
-  /// 
-  /// This function is passed the `ViewModel`, and if `distinct` is `true`,
-  /// it will only be called if the `ViewModel` changes.
-  /// 
-  /// This can be useful for triggering actions based on the previous 
-  /// state.
-  final OnWillChangeWithPrevCallback<Store<S>> onWillChangeWithPrev;
 
   /// A function that will be run on State change, after the Widget is built.
   ///
@@ -367,7 +336,6 @@ class StoreBuilder<S> extends StatelessWidget {
     this.onDispose,
     this.rebuildOnChange = true,
     this.onWillChange,
-    this.onWillChangeWithPrev,
     this.onDidChange,
     this.onInitialBuild,
   })  : assert(builder != null),
@@ -382,7 +350,6 @@ class StoreBuilder<S> extends StatelessWidget {
       onInit: onInit,
       onDispose: onDispose,
       onWillChange: onWillChange,
-      onWillChangeWithPrev: onWillChangeWithPrev,
       onDidChange: onDidChange,
       onInitialBuild: onInitialBuild,
     );
@@ -400,7 +367,6 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
   final OnDisposeCallback<S> onDispose;
   final IgnoreChangeTest<S> ignoreChange;
   final OnWillChangeCallback<ViewModel> onWillChange;
-  final OnWillChangeWithPrevCallback<ViewModel> onWillChangeWithPrev;
   final OnDidChangeCallback<ViewModel> onDidChange;
   final OnInitialBuildCallback<ViewModel> onInitialBuild;
 
@@ -415,7 +381,6 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
     this.rebuildOnChange = true,
     this.ignoreChange,
     this.onWillChange,
-    this.onWillChangeWithPrev,
     this.onDidChange,
     this.onInitialBuild,
   }) : super(key: key);
@@ -493,15 +458,11 @@ class _StoreStreamListenerState<S, ViewModel>
     stream = stream.transform(
       StreamTransformer.fromHandlers(
         handleData: (vm, sink) {
-          if (widget.onWillChangeWithPrev != null) {
-            widget.onWillChangeWithPrev(latestValue, vm);
+          if (widget.onWillChange != null) {
+            widget.onWillChange(latestValue, vm);
           }
 
           latestValue = vm;
-          
-          if (widget.onWillChange != null) {
-            widget.onWillChange(latestValue);
-          }
           
           if (widget.onDidChange != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {

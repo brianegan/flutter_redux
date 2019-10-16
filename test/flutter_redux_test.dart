@@ -324,7 +324,7 @@ void main() {
       final widget = () => StoreProvider<String>(
             store: store,
             child: StoreConnector<String, String>(
-              onWillChange: (_) => states.add(BuildState.before),
+              onWillChange: (_, __) => states.add(BuildState.before),
               converter: (store) => store.state,
               builder: (context, latest) {
                 states.add(BuildState.during);
@@ -538,7 +538,6 @@ void main() {
       final widget = () => StoreProvider(
             store: store,
             child: StoreBuilder<String>(
-              onWillChange: counter,
               builder: (context, latest) => Container(),
             ),
           );
