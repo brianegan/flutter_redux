@@ -41,12 +41,12 @@ class StoreProvider<S> extends InheritedWidget {
   ///   }
   /// }
   /// ```
-
-  /// if you need to use the [Store] from an initState function
-  /// set the [listen] option to false
-  /// 
+  ///
+  /// If you need to use the [Store] from the `initState` function, set the
+  /// [listen] option to false.
+  ///
   /// ### Example
-  /// 
+  ///
   /// ```
   /// class MyWidget extends StatefulWidget {
   ///   static GlobalKey<_MyWidgetState> captorKey = GlobalKey<_MyWidgetState>();
