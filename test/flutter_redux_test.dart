@@ -324,7 +324,6 @@ void main() {
       final widget = () => StoreProvider<String>(
             store: store,
             child: StoreConnector<String, String>(
-              onWillChange: (_, __) => states.add(BuildState.before),
               converter: (store) => store.state,
               builder: (context, latest) {
                 states.add(BuildState.during);
