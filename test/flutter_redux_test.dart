@@ -164,6 +164,23 @@ void main() {
       expect(numBuilds, 2);
     });
 
+    testWidgets('can access store from initState', (WidgetTester tester) async {
+      final store = Store<String>(
+        identityReducer,
+        initialState: 'I',
+      );
+      final widget = StoreProvider<String>(
+        store: store,
+        child: StoreCaptorStateful(),
+      );
+
+      // Build the widget with the initial state
+      await tester.pumpWidget(widget);
+
+      // Check whether the store it captures is the same as the store created at the beginning
+      expect(StoreCaptorStateful.captorKey.currentState.store, store);
+    });
+
     testWidgets('does not rebuild if rebuildOnChange is set to false',
         (WidgetTester tester) async {
       var numBuilds = 0;
@@ -661,6 +678,30 @@ class StoreCaptor<S> extends StatelessWidget {
   Widget build(BuildContext context) {
     store = StoreProvider.of<S>(context);
 
+    return Container();
+  }
+}
+
+class StoreCaptorStateful extends StatefulWidget {
+  static GlobalKey<_StoreCaptorStatefulState> captorKey =
+      GlobalKey<_StoreCaptorStatefulState>();
+
+  StoreCaptorStateful() : super(key: captorKey);
+
+  _StoreCaptorStatefulState createState() => _StoreCaptorStatefulState();
+}
+
+class _StoreCaptorStatefulState extends State<StoreCaptorStateful> {
+  Store<String> store;
+
+  @override
+  void initState() {
+    super.initState();
+    store = StoreProvider.of<String>(context, listen: false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container();
   }
 }

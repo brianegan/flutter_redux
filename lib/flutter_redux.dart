@@ -41,10 +41,43 @@ class StoreProvider<S> extends InheritedWidget {
   ///   }
   /// }
   /// ```
-  static Store<S> of<S>(BuildContext context) {
+
+  /// if you need to use the [Store] from an initState function
+  /// set the [listen] option to false
+  /// 
+  /// ### Example
+  /// 
+  /// ```
+  /// class MyWidget extends StatefulWidget {
+  ///   static GlobalKey<_MyWidgetState> captorKey = GlobalKey<_MyWidgetState>();
+  ///
+  ///   MyWidget() : super(key: captorKey);
+  ///
+  ///   _MyWidgetState createState() => _MyWidgetState();
+  /// }
+  ///
+  /// class _MyWidgetState extends State<MyWidget> {
+  ///   Store<String> store;
+  ///
+  ///   @override
+  ///   void initState() {
+  ///     super.initState();
+  ///     store = StoreProvider.of<String>(context, listen: false);
+  ///   }
+  ///
+  ///   @override
+  ///  Widget build(BuildContext context) {
+  ///     return Container();
+  ///   }
+  /// }
+  /// ```
+  static Store<S> of<S>(BuildContext context, {bool listen = true}) {
     final type = _typeOf<StoreProvider<S>>();
-    final provider =
-        context.inheritFromWidgetOfExactType(type) as StoreProvider<S>;
+    final provider = (listen
+        ? context.inheritFromWidgetOfExactType(type)
+        : context
+            .ancestorInheritedElementForWidgetOfExactType(type)
+            ?.widget) as StoreProvider<S>;
 
     if (provider == null) throw StoreProviderError(type);
 
