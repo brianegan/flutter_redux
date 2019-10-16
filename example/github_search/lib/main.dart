@@ -17,7 +17,7 @@ void main() {
       // One is implemented as a normal middleware, the other is implemented as
       // an epic for demonstration purposes.
 
-//        SearchMiddleware(GithubApi()),
+//        SearchMiddleware(GithubClient()),
       EpicMiddleware<SearchState>(SearchEpic(GithubClient())),
     ],
   );
