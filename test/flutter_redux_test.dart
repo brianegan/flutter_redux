@@ -164,31 +164,22 @@ void main() {
       expect(numBuilds, 2);
     });
 
-    testWidgets(
-        'builds the latest state of the store after a change event is triggered from initState',
-        (WidgetTester tester) async {
+    testWidgets('can access store from initState', (WidgetTester tester) async {
       final store = Store<String>(
         identityReducer,
         initialState: 'I',
       );
       final widget = StoreProvider<String>(
         store: store,
-        child: StoreConnector<String, String>(
-          converter: selector,
-          rebuildOnChange: false,
-          builder: (context, state) {
-            return StoreCaptorStatefull(state);
-          },
-        ),
+        child: StoreCaptorStateful(),
       );
 
       // Build the widget with the initial state
       await tester.pumpWidget(widget);
 
-      await tester.pumpWidget(widget);
-
-      expect(find.text('A'), findsOneWidget);
-    }, skip: true);
+      // Check whether the store it captures is the same as the store created at the beginning
+      expect(StoreCaptorStateful.captorKey.currentState.store, store);
+    });
 
     testWidgets('does not rebuild if rebuildOnChange is set to false',
         (WidgetTester tester) async {
@@ -691,30 +682,27 @@ class StoreCaptor<S> extends StatelessWidget {
   }
 }
 
-// ignore: must_be_immutable
-class StoreCaptorStatefull extends StatefulWidget {
-  static const Key captorKey = Key('StoreCaptorStatefull');
+class StoreCaptorStateful extends StatefulWidget {
+  static GlobalKey<_StoreCaptorStatefulState> captorKey =
+      GlobalKey<_StoreCaptorStatefulState>();
 
-  String state;
+  StoreCaptorStateful() : super(key: captorKey);
 
-  StoreCaptorStatefull(this.state, {Key key}) : super(key: key);
-
-  _StoreCaptorStatefullState createState() => _StoreCaptorStatefullState();
+  _StoreCaptorStatefulState createState() => _StoreCaptorStatefulState();
 }
 
-class _StoreCaptorStatefullState extends State<StoreCaptorStatefull> {
+class _StoreCaptorStatefulState extends State<StoreCaptorStateful> {
+  Store<String> store;
+
   @override
   void initState() {
     super.initState();
-    StoreProvider.of<String>(context, listen: false).dispatch('A');
+    store = StoreProvider.of<String>(context, listen: false);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      widget.state,
-      textDirection: TextDirection.ltr,
-    );
+    return Container();
   }
 }
 
