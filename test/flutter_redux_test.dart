@@ -42,7 +42,7 @@ void main() {
 
     testWidgets('should update the children if the store changes',
         (WidgetTester tester) async {
-      Widget widget([String state]) {
+      Widget widget(String state) {
         return StoreProvider<String>(
           store: Store<String>(
             identityReducer,
@@ -487,13 +487,138 @@ void main() {
 
       expect(numBuilds, 1);
 
-      // Dispatch another action of a different type. This should trigger another
-      // rebuild
+      // Dispatch another action of a different type. This should trigger
+      // another rebuild
       store.dispatch('A');
 
       await tester.pumpWidget(widget);
 
       expect(numBuilds, 2);
+    });
+
+    group('Updates', () {
+      testWidgets(
+        'converter update results in proper rebuild',
+        (WidgetTester tester) async {
+          String currentState;
+          final store = Store<String>(
+            identityReducer,
+            initialState: 'I',
+          );
+          Widget widget([StoreConverter<String, String> converter = selector]) {
+            return StoreProvider<String>(
+              store: store,
+              child: StoreConnector<String, String>(
+                converter: converter,
+                onInit: (store) => store.dispatch('A'),
+                builder: (context, vm) {
+                  currentState = vm;
+                  return Container();
+                },
+              ),
+            );
+          }
+
+          // Build the widget with the initial state
+          await tester.pumpWidget(widget());
+
+          // Expect the Widget to be rebuilt and the onInit method to be called
+          expect(currentState, 'A');
+
+          // Rebuild the widget with a new converter
+          await tester.pumpWidget(widget((Store<String> s) => 'B'));
+
+          // Expect the Widget to be rebuilt and the converter should be rerun
+          expect(currentState, 'B');
+        },
+      );
+
+      testWidgets(
+        'onDidChange works as expected',
+        (WidgetTester tester) async {
+          String currentState;
+          final store = Store<String>(
+            identityReducer,
+            initialState: 'I',
+          );
+          Widget widget([void Function(String viewModel) onDidChange]) {
+            return StoreProvider<String>(
+              store: store,
+              child: StoreConnector<String, String>(
+                converter: selector,
+                onDidChange: onDidChange,
+                onInit: (store) => store.dispatch('A'),
+                builder: (context, vm) {
+                  return Container();
+                },
+              ),
+            );
+          }
+
+          // Build the widget with the initial state
+          await tester.pumpWidget(widget());
+
+          // No onDidChange function to run, so currentState should be null
+          expect(currentState, isNull);
+
+          // Build the widget with a new onDidChange
+          final newWidget = widget((_) => currentState = 'S');
+          await tester.pumpWidget(newWidget);
+
+          // Dispatch a new value, which should cause onDidChange to run
+          store.dispatch('B');
+
+          // Run pumpWidget, which should flush the after build (didChange)
+          // callbacks
+          await tester.pumpWidget(newWidget);
+
+          // Expect our new onDidChange to run
+          expect(currentState, 'S');
+        },
+      );
+      testWidgets(
+        'onWillChange works as expected',
+            (WidgetTester tester) async {
+          String currentState;
+          final store = Store<String>(
+            identityReducer,
+            initialState: 'I',
+          );
+          Widget widget([void Function(String viewModel) onWillChange]) {
+            return StoreProvider<String>(
+              store: store,
+              child: StoreConnector<String, String>(
+                converter: selector,
+                onWillChange: onWillChange,
+                onInit: (store) => store.dispatch('A'),
+                builder: (context, vm) {
+                  return Container();
+                },
+              ),
+            );
+          }
+
+          // Build the widget with the initial state
+          await tester.pumpWidget(widget());
+
+          // No onWillChange function to run, so currentState should be null
+          expect(currentState, isNull);
+
+          // Build the widget with a new onWillChange
+          final newWidget = widget((_) => currentState = 'S');
+          await tester.pumpWidget(newWidget);
+
+          // Dispatch a new value, which should cause onWillChange to run
+          store.dispatch('B');
+
+          // Run pumpWidget, which should flush the after build (didChange)
+          // callbacks
+          await tester.pumpWidget(newWidget);
+
+          // Expect our new onWillChange to run
+          expect(currentState, 'S');
+        },
+      );
     });
   });
 
