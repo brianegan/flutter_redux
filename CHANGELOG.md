@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.4
+
+  * Bugfix: Rebuilding the Widget will always rebuild with latest data
+  * Enforce pedantic lint rules
+  * Docs
+    - Document all public members 
+    - Add more examples to README
+
 ## 0.5.3
 
   * Maintenance update
