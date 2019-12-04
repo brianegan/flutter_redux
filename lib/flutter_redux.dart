@@ -144,9 +144,14 @@ typedef IgnoreChangeTest<S> = bool Function(S state);
 /// This function is passed the `ViewModel`, and if `distinct` is `true`,
 /// it will only be called if the `ViewModel` changes.
 ///
-/// This can be useful for imperative calls to things like Navigator,
-/// TabController, etc
-typedef OnWillChangeCallback<ViewModel> = void Function(ViewModel viewModel);
+/// This is useful for making calls to other classes, such as a
+/// `Navigator` or `TabController`, in response to state changes.
+/// It can also be used to trigger an action based on the previous
+/// state.
+typedef OnWillChangeCallback<ViewModel> = void Function(
+  ViewModel previousViewModel,
+  ViewModel newViewModel,
+);
 
 /// A function that will be run on State change, after the build method.
 ///
@@ -237,7 +242,8 @@ class StoreConnector<S, ViewModel> extends StatelessWidget {
   /// it will only be called if the `ViewModel` changes.
   ///
   /// This can be useful for imperative calls to things like Navigator,
-  /// TabController, etc
+  /// TabController, etc. This can also be useful for triggering actions
+  /// based on the previous state.
   final OnWillChangeCallback<ViewModel> onWillChange;
 
   /// A function that will be run on State change, after the Widget is built.
@@ -337,7 +343,8 @@ class StoreBuilder<S> extends StatelessWidget {
   /// A function that will be run on State change, before the Widget is built.
   ///
   /// This can be useful for imperative calls to things like Navigator,
-  /// TabController, etc
+  /// TabController, etc. This can also be useful for triggering actions
+  /// based on the previous state.
   final OnWillChangeCallback<Store<S>> onWillChange;
 
   /// A function that will be run on State change, after the Widget is built.
@@ -509,11 +516,11 @@ class _StoreStreamListenerState<S, ViewModel>
   }
 
   void _handleChange(ViewModel vm, EventSink<ViewModel> sink) {
-    latestValue = vm;
-
     if (widget.onWillChange != null) {
-      widget.onWillChange(latestValue);
+      widget.onWillChange(latestValue, vm);
     }
+
+    latestValue = vm;
 
     if (widget.onDidChange != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
