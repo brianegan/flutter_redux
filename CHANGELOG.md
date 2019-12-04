@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+  * Breaking Change: `onWillChange` now receives previous and new `ViewModel`
+  * Breaking Change: Supports Redux 4.x - 5.0 
+
 ## 0.5.4
 
   * Bugfix: Rebuilding the Widget will always rebuild with latest data
