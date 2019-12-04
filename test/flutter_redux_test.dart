@@ -341,7 +341,7 @@ void main() {
       Widget widget() => StoreProvider<String>(
             store: store,
             child: StoreConnector<String, String>(
-              onWillChange: (_) => states.add(BuildState.before),
+              onWillChange: (_, __) => states.add(BuildState.before),
               converter: (store) => store.state,
               builder: (context, latest) {
                 states.add(BuildState.during);
@@ -578,13 +578,15 @@ void main() {
       );
       testWidgets(
         'onWillChange works as expected',
-            (WidgetTester tester) async {
+        (WidgetTester tester) async {
           String currentState;
           final store = Store<String>(
             identityReducer,
             initialState: 'I',
           );
-          Widget widget([void Function(String viewModel) onWillChange]) {
+          Widget widget([
+            void Function(String prev, String current) onWillChange,
+          ]) {
             return StoreProvider<String>(
               store: store,
               child: StoreConnector<String, String>(
@@ -605,7 +607,7 @@ void main() {
           expect(currentState, isNull);
 
           // Build the widget with a new onWillChange
-          final newWidget = widget((_) => currentState = 'S');
+          final newWidget = widget((_, __) => currentState = 'S');
           await tester.pumpWidget(newWidget);
 
           // Dispatch a new value, which should cause onWillChange to run
@@ -837,10 +839,14 @@ String identityReducer(String state, dynamic action) {
 
 class CallCounter<S> {
   final List<S> states = [];
+  final List<S> states2 = [];
 
   int get callCount => states.length;
 
-  void call(S state) => states.add(state);
+  void call(S s1, [S s2]) {
+    states.add(s1);
+    states2.add(s2);
+  }
 }
 
 enum BuildState { before, during, after }
