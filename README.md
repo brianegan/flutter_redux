@@ -36,6 +36,7 @@ Dart 2 requires more strict typing (yay!), and gives us the option to make getti
   * [flipperkit_redux_middleware](https://pub.dartlang.org/packages/flipperkit_redux_middleware) - Redux Inspector (use [Flutter Debugger](https://github.com/blankapp/flutter-debugger)) for Flutter Redux apps
   * [flutter_redux_dev_tools](https://pub.dartlang.org/packages/flutter_redux_dev_tools) - Time Travel Dev Tools for Flutter Redux apps
   * [redux_persist](https://github.com/Cretezy/redux_persist) - Persist Redux State   
+  * [flutter_redux_navigation](https://github.com/flutterings/flutter_redux_navigation) - Use redux events for navigation
  
 ## Usage
 
