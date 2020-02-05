@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0
+
+  * Requires Flutter 1.12.13+
+  * Move from deprecated methods to new methods
+    * `inheritFromWidgetOfExactType` -> `dependOnInheritedWidgetOfExactType`
+    * `ancestorInheritedElementForWidgetOfExactType` -> `getElementForInheritedWidgetOfExactType`
+  
 ## 0.6.0
 
   * Breaking Change: `onWillChange` now receives previous and new `ViewModel`

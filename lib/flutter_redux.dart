@@ -72,20 +72,16 @@ class StoreProvider<S> extends InheritedWidget {
   /// }
   /// ```
   static Store<S> of<S>(BuildContext context, {bool listen = true}) {
-    final type = _typeOf<StoreProvider<S>>();
     final provider = (listen
-        ? context.inheritFromWidgetOfExactType(type)
+        ? context.dependOnInheritedWidgetOfExactType<StoreProvider<S>>()
         : context
-            .ancestorInheritedElementForWidgetOfExactType(type)
+            .getElementForInheritedWidgetOfExactType<StoreProvider<S>>()
             ?.widget) as StoreProvider<S>;
 
-    if (provider == null) throw StoreProviderError(type);
+    if (provider == null) throw StoreProviderError<StoreProvider<S>>();
 
     return provider._store;
   }
-
-  // Workaround to capture generics
-  static Type _typeOf<T>() => T;
 
   @override
   bool updateShouldNotify(StoreProvider<S> oldWidget) =>
@@ -537,16 +533,13 @@ class _StoreStreamListenerState<S, ViewModel>
 /// Often, when the `of` method fails, it is difficult to understand why since
 /// there can be multiple causes. This error explains those causes so the user
 /// can understand and fix the issue.
-class StoreProviderError extends Error {
-  /// The type of the class the user tried to retrieve
-  Type type;
-
+class StoreProviderError<S> extends Error {
   /// Creates a StoreProviderError
-  StoreProviderError(this.type);
+  StoreProviderError();
 
   @override
   String toString() {
-    return '''Error: No $type found. To fix, please try:
+    return '''Error: No ${S} found. To fix, please try:
           
   * Wrapping your MaterialApp with the StoreProvider<State>, 
   rather than an individual Route
