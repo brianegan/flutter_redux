@@ -78,16 +78,10 @@ class StoreProvider<S> extends InheritedWidget {
             .getElementForInheritedWidgetOfExactType<StoreProvider<S>>()
             ?.widget) as StoreProvider<S>;
 
-    if (provider == null) {
-      final type = _typeOf<StoreProvider<S>>();
-      throw StoreProviderError(type);
-    }
+    if (provider == null) throw StoreProviderError<StoreProvider<S>>();
 
     return provider._store;
   }
-
-  // Workaround to capture generics
-  static Type _typeOf<T>() => T;
 
   @override
   bool updateShouldNotify(StoreProvider<S> oldWidget) =>
@@ -430,8 +424,9 @@ class _StoreStreamListener<S, ViewModel> extends StatefulWidget {
 
 class _StoreStreamListenerState<S, ViewModel>
     extends State<_StoreStreamListener<S, ViewModel>> {
-  Stream<ViewModel> stream;
-  ViewModel latestValue;
+  Stream<ViewModel> _stream;
+  ViewModel _latestValue;
+  Object _latestError;
 
   @override
   void initState() {
@@ -441,11 +436,11 @@ class _StoreStreamListenerState<S, ViewModel>
 
     if (widget.onInitialBuild != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.onInitialBuild(latestValue);
+        widget.onInitialBuild(_latestValue);
       });
     }
 
-    latestValue = widget.converter(widget.store);
+    _computeLatestValue();
     _createStream();
 
     super.initState();
@@ -462,7 +457,7 @@ class _StoreStreamListenerState<S, ViewModel>
 
   @override
   void didUpdateWidget(_StoreStreamListener<S, ViewModel> oldWidget) {
-    latestValue = widget.converter(widget.store);
+    _computeLatestValue();
 
     if (widget.store != oldWidget.store) {
       _createStream();
@@ -471,17 +466,32 @@ class _StoreStreamListenerState<S, ViewModel>
     super.didUpdateWidget(oldWidget);
   }
 
+  void _computeLatestValue() {
+    try {
+      _latestError = null;
+      _latestValue = widget.converter(widget.store);
+    } catch (e, s) {
+      _latestValue = null;
+      _latestError = ConverterError(e, s);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return widget.rebuildOnChange
         ? StreamBuilder<ViewModel>(
-            stream: stream,
-            builder: (context, snapshot) => widget.builder(
-              context,
-              latestValue,
-            ),
+            stream: _stream,
+            builder: (context, snapshot) {
+              if (_latestError != null) {
+                throw _latestError;
+              }
+              return widget.builder(
+                context,
+                _latestValue,
+              );
+            },
           )
-        : widget.builder(context, latestValue);
+        : widget.builder(context, _latestValue);
   }
 
   ViewModel _mapConverter(S state) {
@@ -490,7 +500,7 @@ class _StoreStreamListenerState<S, ViewModel>
 
   bool _whereDistinct(ViewModel vm) {
     if (widget.distinct) {
-      return vm != latestValue;
+      return vm != _latestValue;
     }
 
     return true;
@@ -505,7 +515,7 @@ class _StoreStreamListenerState<S, ViewModel>
   }
 
   void _createStream() {
-    stream = widget.store.onChange
+    _stream = widget.store.onChange
         .where(_ignoreChange)
         .map(_mapConverter)
         // Don't use `Stream.distinct` because it cannot capture the initial
@@ -514,23 +524,35 @@ class _StoreStreamListenerState<S, ViewModel>
         // After each ViewModel is emitted from the Stream, we update the
         // latestValue. Important: This must be done after all other optional
         // transformations, such as ignoreChange.
-        .transform(StreamTransformer.fromHandlers(handleData: _handleChange));
+        .transform(StreamTransformer.fromHandlers(
+            handleData: _handleChange, handleError: _handleError));
   }
 
   void _handleChange(ViewModel vm, EventSink<ViewModel> sink) {
+    _latestError = null;
+
     if (widget.onWillChange != null) {
-      widget.onWillChange(latestValue, vm);
+      widget.onWillChange(_latestValue, vm);
     }
 
-    latestValue = vm;
+    _latestValue = vm;
 
     if (widget.onDidChange != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.onDidChange(latestValue);
+        widget.onDidChange(_latestValue);
       });
     }
 
     sink.add(vm);
+  }
+
+  void _handleError(
+    Object error,
+    StackTrace stackTrace,
+    EventSink<ViewModel> sink,
+  ) {
+    _latestValue = null;
+    _latestError = ConverterError(error, stackTrace);
   }
 }
 
@@ -539,16 +561,13 @@ class _StoreStreamListenerState<S, ViewModel>
 /// Often, when the `of` method fails, it is difficult to understand why since
 /// there can be multiple causes. This error explains those causes so the user
 /// can understand and fix the issue.
-class StoreProviderError extends Error {
-  /// The type of the class the user tried to retrieve
-  Type type;
-
+class StoreProviderError<S> extends Error {
   /// Creates a StoreProviderError
-  StoreProviderError(this.type);
+  StoreProviderError();
 
   @override
   String toString() {
-    return '''Error: No $type found. To fix, please try:
+    return '''Error: No $S found. To fix, please try:
           
   * Wrapping your MaterialApp with the StoreProvider<State>, 
   rather than an individual Route
@@ -560,5 +579,22 @@ class StoreProviderError extends Error {
 If none of these solutions work, please file a bug at:
 https://github.com/brianegan/flutter_redux/issues/new
       ''';
+  }
+}
+
+/// If the StoreConnector throws an error,
+class ConverterError extends Error {
+  final Object error;
+  final StackTrace stackTrace;
+
+  /// Creates a ConverterError with the relevant error and stacktrace
+  ConverterError(this.error, this.stackTrace);
+
+  @override
+  String toString() {
+    return '''Converter Function Error: $error
+    
+$stackTrace;
+''';
   }
 }
