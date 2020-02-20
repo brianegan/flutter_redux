@@ -434,13 +434,14 @@ class _StoreStreamListenerState<S, ViewModel>
       widget.onInit(widget.store);
     }
 
+    _computeLatestValue();
+
     if (widget.onInitialBuild != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.onInitialBuild(_latestValue);
       });
     }
 
-    _computeLatestValue();
     _createStream();
 
     super.initState();
@@ -482,16 +483,17 @@ class _StoreStreamListenerState<S, ViewModel>
         ? StreamBuilder<ViewModel>(
             stream: _stream,
             builder: (context, snapshot) {
-              if (_latestError != null) {
-                throw _latestError;
-              }
+              if (_latestError != null) throw _latestError;
+
               return widget.builder(
                 context,
                 _latestValue,
               );
             },
           )
-        : widget.builder(context, _latestValue);
+        : _latestError != null
+            ? throw _latestError
+            : widget.builder(context, _latestValue);
   }
 
   ViewModel _mapConverter(S state) {
@@ -553,6 +555,7 @@ class _StoreStreamListenerState<S, ViewModel>
   ) {
     _latestValue = null;
     _latestError = ConverterError(error, stackTrace);
+    sink.addError(error, stackTrace);
   }
 }
 

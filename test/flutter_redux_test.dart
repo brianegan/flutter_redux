@@ -102,7 +102,7 @@ void main() {
       expect(find.text('I'), findsOneWidget);
     });
 
-    testWidgets('converter errors are thrown by the Widget',
+    testWidgets('converter errors in initState are thrown by the Widget',
         (WidgetTester tester) async {
       final widget = StoreProvider<String>(
         store: Store<String>(identityReducer, initialState: 'I'),
@@ -117,6 +117,39 @@ void main() {
         ),
       );
 
+      await tester.pumpWidget(widget);
+
+      expect(tester.takeException(), isInstanceOf<ConverterError>());
+    });
+
+    testWidgets('converter errors from the stream are thrown by the Widget',
+        (WidgetTester tester) async {
+      int count = 0;
+      final store = Store<String>(identityReducer, initialState: 'I');
+      final widget = StoreProvider<String>(
+        store: store,
+        child: StoreConnector<String, String>(
+          converter: (store) {
+            if (count == 0) {
+              count++;
+              return store.state.toString();
+            }
+
+            throw StateError('A');
+          },
+          builder: (context, latest) {
+            return Text(
+              latest,
+              textDirection: TextDirection.ltr,
+            );
+          },
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isNull);
+
+      store.dispatch('U');
       await tester.pumpWidget(widget);
 
       expect(tester.takeException(), isInstanceOf<ConverterError>());
