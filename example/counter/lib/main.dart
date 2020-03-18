@@ -52,9 +52,6 @@ class FlutterReduxApp extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'You have pushed the button this many times:',
-                ),
                 // Connect the Store to a Text Widget that renders the current
                 // count.
                 //
@@ -72,7 +69,7 @@ class FlutterReduxApp extends StatelessWidget {
                   converter: (store) => store.state.toString(),
                   builder: (context, count) {
                     return Text(
-                      count,
+                      'The button has been pushed this many times: $count',
                       style: Theme.of(context).textTheme.display1,
                     );
                   },
@@ -81,21 +78,22 @@ class FlutterReduxApp extends StatelessWidget {
             ),
           ),
           // Connect the Store to a FloatingActionButton. In this case, we'll
-          // use the Store to build a callback that with dispatch an Increment
+          // use the Store to build a callback that will dispatch an Increment
           // Action.
           //
           // Then, we'll pass this callback to the button's `onPressed` handler.
           floatingActionButton: StoreConnector<int, VoidCallback>(
             converter: (store) {
               // Return a `VoidCallback`, which is a fancy name for a function
-              // with no parameters. It only dispatches an Increment action.
+              // with no parameters and no return value.
+              // It only dispatches an Increment action.
               return () => store.dispatch(Actions.Increment);
             },
             builder: (context, callback) {
               return FloatingActionButton(
                 // Attach the `callback` to the `onPressed` attribute
                 onPressed: callback,
-                tooltip: 'asdasdasd',
+                tooltip: 'Increment',
                 child: Icon(Icons.add),
               );
             },

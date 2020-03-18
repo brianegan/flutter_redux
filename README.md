@@ -63,11 +63,12 @@ int counterReducer(int state, dynamic action) {
 }
 
 void main() {
-  // Create your store as a final variable in a base Widget. This works better
-  // with Hot Reload than creating it directly in the `build` function.
-  final store = new Store<int>(counterReducer, initialState: 0);
+  // Create your store as a final variable in the main function or inside a
+  // State object. This works better with Hot Reload than creating it directly
+  // in the `build` function.
+  final store = Store<int>(counterReducer, initialState: 0);
 
-  runApp(new FlutterReduxApp(
+  runApp(FlutterReduxApp(
     title: 'Flutter Redux Demo',
     store: store,
   ));
@@ -83,24 +84,21 @@ class FlutterReduxApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // The StoreProvider should wrap your MaterialApp or WidgetsApp. This will
     // ensure all routes have access to the store.
-    return new StoreProvider<int>(
+    return StoreProvider<int>(
       // Pass the store to the StoreProvider. Any ancestor `StoreConnector`
       // Widgets will find and use this value as the `Store`.
       store: store,
-      child: new MaterialApp(
-        theme: new ThemeData.dark(),
+      child: MaterialApp(
+        theme: ThemeData.dark(),
         title: title,
-        home: new Scaffold(
-          appBar: new AppBar(
-            title: new Text(title),
+        home: Scaffold(
+          appBar: AppBar(
+            title: Text(title),
           ),
-          body: new Center(
-            child: new Column(
+          body: Center(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                new Text(
-                  'You have pushed the button this many times:',
-                ),
                 // Connect the Store to a Text Widget that renders the current
                 // count.
                 //
@@ -114,11 +112,11 @@ class FlutterReduxApp extends StatelessWidget {
                 // run through the reducer. After the reducer updates the state,
                 // the Widget will be automatically rebuilt with the latest
                 // count. No need to manually manage subscriptions or Streams!
-                new StoreConnector<int, String>(
+                StoreConnector<int, String>(
                   converter: (store) => store.state.toString(),
                   builder: (context, count) {
-                    return new Text(
-                      count,
+                    return Text(
+                      'The button has been pushed this many times: $count',
                       style: Theme.of(context).textTheme.display1,
                     );
                   },
@@ -127,22 +125,23 @@ class FlutterReduxApp extends StatelessWidget {
             ),
           ),
           // Connect the Store to a FloatingActionButton. In this case, we'll
-          // use the Store to build a callback that with dispatch an Increment
+          // use the Store to build a callback that will dispatch an Increment
           // Action.
           //
           // Then, we'll pass this callback to the button's `onPressed` handler.
-          floatingActionButton: new StoreConnector<int, VoidCallback>(
+          floatingActionButton: StoreConnector<int, VoidCallback>(
             converter: (store) {
               // Return a `VoidCallback`, which is a fancy name for a function
-              // with no parameters. It only dispatches an Increment action.
+              // with no parameters and no return value. 
+              // It only dispatches an Increment action.
               return () => store.dispatch(Actions.Increment);
             },
             builder: (context, callback) {
-              return new FloatingActionButton(
+              return FloatingActionButton(
                 // Attach the `callback` to the `onPressed` attribute
                 onPressed: callback,
                 tooltip: 'Increment',
-                child: new Icon(Icons.add),
+                child: Icon(Icons.add),
               );
             },
           ),
