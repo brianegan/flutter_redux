@@ -1,5 +1,3 @@
-# Changelog
-
 ## 0.6.0
 
   * Breaking Change: `onWillChange` now receives previous and new `ViewModel`
