@@ -3,6 +3,7 @@ library flutter_redux;
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_hooks/flutter_hooks.dart' as hooks;
 import 'package:meta/meta.dart';
 import 'package:redux/redux.dart';
 
@@ -561,4 +562,82 @@ If none of these solutions work, please file a bug at:
 https://github.com/brianegan/flutter_redux/issues/new
       ''';
   }
+}
+
+/// A hook to access the redux store
+///
+/// ### Example
+///
+/// ```
+/// class StoreUser extends HookWidget {
+///   @override
+///   Widget build(BuildContext context) {
+///     final store = useStore();
+///     return YourWidgetHierarchy(store: store);
+///   }
+/// }
+/// ```
+Store<S> useStore<S>() => hooks.use(_UseStoreHook());
+
+class _UseStoreHook<S> extends hooks.Hook<Store<S>> {
+  @override
+  hooks.HookState<Store<S>, hooks.Hook<Store<S>>> createState() =>
+      _UseStoreHookState<S>();
+}
+
+class _UseStoreHookState<S>
+    extends hooks.HookState<Store<S>, _UseStoreHook<S>> {
+  @override
+  Store<S> build(BuildContext context) => StoreProvider.of<S>(context);
+}
+
+typedef Dispatch = dynamic Function(dynamic action);
+
+/// A hook to access the redux `dispatch` function
+///
+/// ### Example
+///
+/// ```
+/// class StoreUser extends HookWidget {
+///   @override
+///   Widget build(BuildContext context) {
+///     final dispatch = useDispatch<AppState>();
+///     useEffect(() {
+///       dispatch(SomeAction());
+///     }, []);
+///     return YourWidgetHierarchy(dispatch: dispatch);
+///   }
+/// }
+/// ```
+Dispatch useDispatch<S>() => useStore<S>().dispatch;
+
+typedef Selector<State, Output> = Output Function(State state);
+typedef EqualityFn<T> = bool Function(T a, T b);
+
+/// A hook to access the redux store's state. This hook takes a selector function
+/// as an argument. The selector is called with the store state.
+///
+/// This hook takes an optional equality comparison function as the second parameter
+/// that allows you to customize the way the selected state is compared to determine
+/// whether the widget needs to be re-built. The default equality comparison function
+/// is one that uses referential equality.
+///
+/// ### Example
+///
+/// ```
+/// class StoreUser extends HookWidget {
+///   @override
+///   Widget build(BuildContext context) {
+///     final someCount = useSelector<AppState, int>(selectSomeCount);
+///     return YourWidgetHierarchy(someCount: someCount);
+///   }
+/// }
+/// ```
+Output useSelector<State, Output>(Selector<State, Output> selector,
+    [EqualityFn equalityFn]) {
+  final store = useStore<State>();
+  final snap = hooks.useStream<Output>(
+      store.onChange.map(selector).distinct(equalityFn),
+      initialData: selector(store.state));
+  return snap.data;
 }

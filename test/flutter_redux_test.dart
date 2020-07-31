@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart' as hooks;
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:redux/redux.dart';
@@ -787,6 +788,102 @@ void main() {
       await tester.pumpWidget(Container());
 
       expect(counter.callCount, 1);
+    });
+  });
+
+  group('useStore', () {
+    testWidgets('should yield the same store', (tester) async {
+      Store<String> result;
+      final store = Store<String>(
+        identityReducer,
+        initialState: 'init',
+      );
+
+      Widget Function(BuildContext) builder() {
+        return (context) {
+          result = useStore<String>();
+          return Container();
+        };
+      }
+
+      Widget widget() {
+        return StoreProvider<String>(
+          store: store,
+          child: hooks.HookBuilder(builder: builder()),
+        );
+      }
+
+      await tester.pumpWidget(widget());
+      expect(result, store);
+    });
+  });
+
+  group('useDispatch', () {
+    testWidgets("should yield the store's dispatch function", (tester) async {
+      Dispatch result;
+      final store = Store<String>(
+        identityReducer,
+        initialState: 'init',
+      );
+
+      Widget Function(BuildContext) builder() {
+        return (context) {
+          result = useDispatch<String>();
+          return Container();
+        };
+      }
+
+      Widget widget() {
+        return StoreProvider<String>(
+          store: store,
+          child: hooks.HookBuilder(builder: builder()),
+        );
+      }
+
+      await tester.pumpWidget(widget());
+      expect(result, store.dispatch);
+    });
+  });
+
+  group('useSelector', () {
+    Store<String> store;
+    String state;
+
+    Widget Function(BuildContext) builder() {
+      return (context) {
+        state = useSelector<String, String>((state) => state);
+        return Container();
+      };
+    }
+
+    Widget widget() {
+      return StoreProvider<String>(
+        store: store,
+        child: hooks.HookBuilder(builder: builder()),
+      );
+    }
+
+    setUp(() {
+      store = Store<String>(
+        identityReducer,
+        initialState: 'init',
+      );
+    });
+
+    tearDown(() {
+      state = null;
+    });
+
+    testWidgets('should yield the initial state', (tester) async {
+      await tester.pumpWidget(widget());
+      expect(state, 'init');
+    });
+
+    testWidgets('should yield the state resulting from the last dispatch', (tester) async {
+      await tester.pumpWidget(widget());
+      store.dispatch('A');
+      await tester.pumpWidget(widget());
+      expect(state, 'A');
     });
   });
 }
