@@ -1,11 +1,10 @@
 name: flutter_redux_hooks
 description: A hook-based alternative to flutter_redux
 version: 0.1.0
-author: Alvaro Nicoli <xmr.nkr@gmail.com>
 homepage: https://github.com/mrnkr/flutter_redux_hooks
 
 environment:
-  sdk: ">=2.0.0-dev.28.0 <3.0.0"
+  sdk: ">=2.0.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -13,9 +12,11 @@ dependencies:
 
   redux: ">=4.0.0 <5.0.0"
   flutter_hooks: ^0.12.0
+  meta: ^1.1.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   pedantic: 1.8.0+1
+
