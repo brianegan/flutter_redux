@@ -8,7 +8,7 @@ dependencies:
 
 dev_dependencies:
   flutter_redux_hooks:
-    path: ../../
+    path: ../
   flutter_test:
     sdk: flutter
   pedantic: ^1.8.0+1
