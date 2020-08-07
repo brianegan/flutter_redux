@@ -1,6 +1,6 @@
 # flutter_redux_hooks
 
-[![Build Status](https://travis-ci.org/mrnkr/flutter_redux_hooks.svg?branch=master)](https://travis-ci.org/mrnkr/flutter_redux_hooks)  [![codecov](https://codecov.io/gh/mrnkr/flutter_redux_hooks/branch/master/graph/badge.svg)](https://codecov.io/gh/mrnkr/flutter_redux_hooks)
+[![Build Status](https://travis-ci.com/mrnkr/flutter_redux_hooks.svg?branch=master)](https://travis-ci.com/mrnkr/flutter_redux_hooks)  [![codecov](https://codecov.io/gh/mrnkr/flutter_redux_hooks/branch/master/graph/badge.svg)](https://codecov.io/gh/mrnkr/flutter_redux_hooks)
 
 A set of utilities that allow you to easily consume a [Redux](https://pub.dartlang.org/packages/redux) Store to build Flutter Widgets.
 
