@@ -556,10 +556,8 @@ void main() {
           }
 
           // Build the widget with the initial state
-          await tester.pumpWidget(widget());
-
-          // No onDidChange function to run, so currentState should be null
-          expect(currentState, isNull);
+          // onDidChange should receive the new state after onInit dispatched an action
+          await tester.pumpWidget(widget((vm) => expect(currentState, 'A')));
 
           // Build the widget with a new onDidChange
           final newWidget = widget((_) => currentState = 'S');
@@ -576,6 +574,7 @@ void main() {
           expect(currentState, 'S');
         },
       );
+
       testWidgets(
         'onWillChange works as expected',
         (WidgetTester tester) async {
@@ -601,10 +600,8 @@ void main() {
           }
 
           // Build the widget with the initial state
-          await tester.pumpWidget(widget());
-
-          // No onWillChange function to run, so currentState should be null
-          expect(currentState, isNull);
+          // onWillChange should receive the new state after onInit dispatched an action
+          await tester.pumpWidget(widget((_, newVm) => expect(newVm, 'A')));
 
           // Build the widget with a new onWillChange
           final newWidget = widget((_, __) => currentState = 'S');
@@ -621,6 +618,139 @@ void main() {
           expect(currentState, 'S');
         },
       );
+
+      testWidgets('onWillChange invoked after action dispatched in onInit and state is distinct',
+          (WidgetTester tester) async {
+        final store = Store<String>(
+          identityReducer,
+          initialState: 'I',
+        );
+        Widget widget([
+          void Function(String prev, String current) onWillChange,
+        ]) {
+          return StoreProvider<String>(
+            store: store,
+            child: StoreConnector<String, String>(
+              distinct: true,
+              converter: selector,
+              onInit: (store) {
+                store.dispatch('A');
+              },
+              onWillChange: (oldVm, newVm) {
+                onWillChange(oldVm, newVm);
+              },
+              builder: (context, state) {
+                return Container();
+              },
+            ),
+          );
+        }
+
+        // Build the widget with the initial state
+        await tester.pumpWidget(widget((oldVm, newVm) {
+          expect(oldVm, 'I');
+          expect(newVm, 'A');
+        }));
+      });
+
+      testWidgets('onWillChange not invoked after action dispatched in onInit and state is not distinct',
+          (WidgetTester tester) async {
+        final store = Store<String>(
+          identityReducer,
+          initialState: 'I',
+        );
+        Widget widget([
+          void Function(String prev, String current) onWillChange,
+        ]) {
+          return StoreProvider<String>(
+            store: store,
+            child: StoreConnector<String, String>(
+              distinct: true,
+              converter: selector,
+              onInit: (store) {
+                store.dispatch('I');
+              },
+              onWillChange: (oldVm, newVm) {
+                onWillChange(oldVm, newVm);
+              },
+              builder: (context, state) {
+                return Container();
+              },
+            ),
+          );
+        }
+
+        // Build the widget with the initial state
+        await tester.pumpWidget(widget((oldVm, newVm) {
+          fail('onWillChange should not be called when distinct is enabled and state is not distinct');
+        }));
+      });
+
+      testWidgets('onDidChange invoked after action dispatched in onInit and state is distinct',
+          (WidgetTester tester) async {
+        final store = Store<String>(
+          identityReducer,
+          initialState: 'I',
+        );
+        Widget widget([
+          void Function(String current) onDidChange,
+        ]) {
+          return StoreProvider<String>(
+            store: store,
+            child: StoreConnector<String, String>(
+              distinct: true,
+              converter: selector,
+              onInit: (store) {
+                store.dispatch('A');
+              },
+              onDidChange: (viewModel) {
+                onDidChange(viewModel);
+              },
+              builder: (context, state) {
+                return Container();
+              },
+            ),
+          );
+        }
+
+        // Build the widget with the initial state
+        await tester.pumpWidget(widget((vm) {
+          expect(vm, 'A');
+        }));
+      });
+
+      testWidgets('onDidChange not invoked after action dispatched in onInit and state is not distinct',
+          (WidgetTester tester) async {
+        final store = Store<String>(
+          identityReducer,
+          initialState: 'I',
+        );
+        Widget widget([
+          void Function(String current) onDidChange,
+        ]) {
+          return StoreProvider<String>(
+            store: store,
+            child: StoreConnector<String, String>(
+              distinct: true,
+              converter: selector,
+              onInit: (store) {
+                store.dispatch('I');
+              },
+              onDidChange: (viewModel) {
+                onDidChange(viewModel);
+              },
+              builder: (context, state) {
+                return Container();
+              },
+            ),
+          );
+        }
+
+        // Build the widget with the initial state
+        await tester.pumpWidget(widget((vm) {
+          fail('onDidChange should not be called when distinct is enabled and state is not distinct');
+        }));
+      });
     });
   });
 

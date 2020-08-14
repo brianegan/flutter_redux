@@ -432,9 +432,14 @@ class _StoreStreamListenerState<S, ViewModel>
     extends State<_StoreStreamListener<S, ViewModel>> {
   Stream<ViewModel> stream;
   ViewModel latestValue;
+  StreamSubscription _subscription;
 
   @override
   void initState() {
+    latestValue = widget.converter(widget.store);
+
+    _subscribe();
+
     if (widget.onInit != null) {
       widget.onInit(widget.store);
     }
@@ -446,9 +451,15 @@ class _StoreStreamListenerState<S, ViewModel>
     }
 
     latestValue = widget.converter(widget.store);
-    _createStream();
 
     super.initState();
+  }
+
+  void _unsubscribe() {
+    if (_subscription != null) {
+      _subscription.cancel();
+      _subscription = null;
+    }
   }
 
   @override
@@ -457,6 +468,7 @@ class _StoreStreamListenerState<S, ViewModel>
       widget.onDispose(widget.store);
     }
 
+    _unsubscribe();
     super.dispose();
   }
 
@@ -465,7 +477,8 @@ class _StoreStreamListenerState<S, ViewModel>
     latestValue = widget.converter(widget.store);
 
     if (widget.store != oldWidget.store) {
-      _createStream();
+      _unsubscribe();
+      _subscribe();
     }
 
     super.didUpdateWidget(oldWidget);
@@ -473,15 +486,7 @@ class _StoreStreamListenerState<S, ViewModel>
 
   @override
   Widget build(BuildContext context) {
-    return widget.rebuildOnChange
-        ? StreamBuilder<ViewModel>(
-            stream: stream,
-            builder: (context, snapshot) => widget.builder(
-              context,
-              latestValue,
-            ),
-          )
-        : widget.builder(context, latestValue);
+    return widget.builder(context, latestValue);
   }
 
   ViewModel _mapConverter(S state) {
@@ -504,7 +509,7 @@ class _StoreStreamListenerState<S, ViewModel>
     return true;
   }
 
-  void _createStream() {
+  void _subscribe() {
     stream = widget.store.onChange
         .where(_ignoreChange)
         .map(_mapConverter)
@@ -515,6 +520,12 @@ class _StoreStreamListenerState<S, ViewModel>
         // latestValue. Important: This must be done after all other optional
         // transformations, such as ignoreChange.
         .transform(StreamTransformer.fromHandlers(handleData: _handleChange));
+
+    _subscription = stream.listen((event) {
+      if (widget.rebuildOnChange) {
+        setState(() {});
+      }
+    });
   }
 
   void _handleChange(ViewModel vm, EventSink<ViewModel> sink) {
