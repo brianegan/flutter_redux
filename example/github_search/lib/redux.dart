@@ -123,12 +123,12 @@ class SearchEpic implements EpicClass<SearchState> {
 
   @override
   Stream<dynamic> call(Stream<dynamic> actions, EpicStore<SearchState> store) {
-    return Observable(actions)
-        // Narrow down to SearchAction actions
-        .ofType(TypeToken<SearchAction>())
-        // Don't start searching until the user pauses for 250ms
-        .debounce(Duration(milliseconds: 250))
-        // Cancel the previous search and start a one with switchMap
+    return actions
+    // Narrow down to SearchAction actions
+        .whereType<SearchAction>()
+    // Don't start searching until the user pauses for 250ms
+        .debounce((_) => TimerStream(true, Duration(milliseconds: 250)))
+    // Cancel the previous search and start a one with switchMap
         .switchMap((action) => _search(action.term));
   }
 
