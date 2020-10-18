@@ -1,3 +1,8 @@
+## 0.7.0
+
+  * Improved error messages in converters
+  * Update InheritedWidget methods to latest version
+
 ## 0.6.0
 
   * Breaking Change: `onWillChange` now receives previous and new `ViewModel`
