@@ -37,6 +37,7 @@ Dart 2 requires more strict typing (yay!), and gives us the option to make getti
   * [flutter_redux_dev_tools](https://pub.dartlang.org/packages/flutter_redux_dev_tools) - Time Travel Dev Tools for Flutter Redux apps
   * [redux_persist](https://github.com/Cretezy/redux_persist) - Persist Redux State   
   * [flutter_redux_navigation](https://github.com/flutterings/flutter_redux_navigation) - Use redux events for navigation
+  * [flutter_redux_gen](https://marketplace.visualstudio.com/items?itemName=BalaDhruv.flutter-redux-gen) - VS Code Extension to generate redux code.
  
 ## Usage
 
