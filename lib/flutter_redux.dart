@@ -426,7 +426,7 @@ class _StoreStreamListenerState<S, ViewModel>
     extends State<_StoreStreamListener<S, ViewModel>> {
   Stream<ViewModel> _stream;
   ViewModel _latestValue;
-  Object _latestError;
+  ConverterError _latestError;
 
   @override
   void initState() {
@@ -587,7 +587,10 @@ https://github.com/brianegan/flutter_redux/issues/new
 
 /// If the StoreConnector throws an error,
 class ConverterError extends Error {
+  /// The error thrown while running the [StoreConnector.converter] function
   final Object error;
+
+  /// The stacktrace that accompanies the [error]
   final StackTrace stackTrace;
 
   /// Creates a ConverterError with the relevant error and stacktrace
