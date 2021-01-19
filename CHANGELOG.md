@@ -12,3 +12,7 @@ Initial Version of the library.
 ## 0.1.2
 
 * Updated `flutter_hooks` dependency to version `0.14.1`
+
+## 0.1.3
+
+* Updated all dependencies to support from their current minor release to the next major release.
