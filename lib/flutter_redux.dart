@@ -427,6 +427,7 @@ class _StoreStreamListenerState<S, ViewModel>
   Stream<ViewModel> _stream;
   ViewModel _latestValue;
   ConverterError _latestError;
+  S _lastConvertedState;
 
   @override
   void initState() {
@@ -496,6 +497,12 @@ class _StoreStreamListenerState<S, ViewModel>
             : widget.builder(context, _latestValue);
   }
 
+  bool _stateChanged(S state) {
+    var ifStateChanged = !identical(_lastConvertedState, widget.store.state);
+    _lastConvertedState = widget.store.state;
+    return ifStateChanged;
+  }
+
   ViewModel _mapConverter(S state) {
     return widget.converter(widget.store);
   }
@@ -510,7 +517,7 @@ class _StoreStreamListenerState<S, ViewModel>
 
   bool _ignoreChange(S state) {
     if (widget.ignoreChange != null) {
-      return !widget.ignoreChange(state);
+      return !widget.ignoreChange(widget.store.state);
     }
 
     return true;
@@ -518,6 +525,7 @@ class _StoreStreamListenerState<S, ViewModel>
 
   void _createStream() {
     _stream = widget.store.onChange
+        .where(_stateChanged)
         .where(_ignoreChange)
         .map(_mapConverter)
         // Don't use `Stream.distinct` because it cannot capture the initial
