@@ -1,3 +1,7 @@
+## 1.0.0
+
+  * Breaking Change: added null-safety
+  * Breaking Change: updated to redux 5.0.0
 ## 0.7.0
 
   * Improved error messages in converters
