@@ -24,7 +24,7 @@ class SearchPopulatedView extends StatelessWidget {
       MaterialPageRoute<Null>(
         builder: (BuildContext context) {
           return Scaffold(
-            resizeToAvoidBottomPadding: false,
+            resizeToAvoidBottomInset: false,
             body: GestureDetector(
               key: Key(item.avatarUrl),
               onTap: () => Navigator.pop(context),
@@ -65,7 +65,7 @@ class _SearchItem extends StatelessWidget {
           MaterialPageRoute<Null>(
             builder: (BuildContext context) {
               return Scaffold(
-                resizeToAvoidBottomPadding: false,
+                resizeToAvoidBottomInset: false,
                 body: GestureDetector(
                   key: Key(item.avatarUrl),
                   onTap: () => Navigator.pop(context),
@@ -114,11 +114,11 @@ class _SearchItem extends StatelessWidget {
                       bottom: 4.0,
                     ),
                     child: Text(
-                      "${item.fullName}",
+                      '${item.fullName}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: "Montserrat",
+                        fontFamily: 'Montserrat',
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,
                       ),
@@ -126,9 +126,9 @@ class _SearchItem extends StatelessWidget {
                   ),
                   Container(
                     child: Text(
-                      "${item.url}",
+                      '${item.url}',
                       style: TextStyle(
-                        fontFamily: "Hind",
+                        fontFamily: 'Hind',
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
