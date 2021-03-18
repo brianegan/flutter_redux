@@ -1,3 +1,7 @@
+## 0.8.2
+
+  * Nullable ViewModels for callback functions as well as build
+
 ## 0.8.1
 
   * Support nullable ViewModels

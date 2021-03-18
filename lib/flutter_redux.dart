@@ -459,9 +459,9 @@ class _StoreStreamListenerState<S, ViewModel>
   ViewModel? _latestValue;
   ConverterError? _latestError;
 
-  /// `_latestValue!` would throw _CastError if `ViewModel` is nullable,
-  /// therefore `_latestValue as ViewModel` is used.
-  /// https://dart.dev/null-safety/understanding-null-safety#nullability-and-generics
+  // `_latestValue!` would throw _CastError if `ViewModel` is nullable,
+  // therefore `_latestValue as ViewModel` is used.
+  // https://dart.dev/null-safety/understanding-null-safety#nullability-and-generics
   ViewModel get _requireLatestValue => _latestValue as ViewModel;
 
   @override
