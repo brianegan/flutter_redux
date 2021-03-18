@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:github_search/redux.dart';
 import 'package:github_search/search_empty_view.dart';
 import 'package:github_search/search_error_view.dart';
 import 'package:github_search/search_initial_view.dart';
 import 'package:github_search/search_loading_view.dart';
 import 'package:github_search/search_result_view.dart';
 
+import 'search_actions.dart';
+import 'search_state.dart';
+
 class SearchScreen extends StatelessWidget {
-  SearchScreen({Key key}) : super(key: key);
+  const SearchScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class SearchScreen extends StatelessWidget {
                 ),
                 style: TextStyle(
                   fontSize: 36.0,
-                  fontFamily: "Hind",
+                  fontFamily: 'Hind',
                   decoration: TextDecoration.none,
                 ),
                 onChanged: vm.onTextChanged,
@@ -70,5 +72,5 @@ class _SearchScreenViewModel {
   final SearchState state;
   final void Function(String term) onTextChanged;
 
-  _SearchScreenViewModel({this.state, this.onTextChanged});
+  _SearchScreenViewModel({required this.state, required this.onTextChanged});
 }

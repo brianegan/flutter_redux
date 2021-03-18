@@ -2,16 +2,18 @@ name: github_search
 description: A new flutter project.
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_redux: ^0.6.0
-  async: ^2.4.2
-  redux_epics: ^0.14.0
-  rxdart: ^0.24.1
-  transparent_image: ^1.0.0
+  redux: ^5.0.0
+  flutter_redux:
+    path: ../../
+  async: ^2.5.0
+  redux_epics: ^0.15.0
+  rxdart: ^0.26.0
+  transparent_image: ^2.0.0
 
 dev_dependencies:
   pedantic: ^1.10.0

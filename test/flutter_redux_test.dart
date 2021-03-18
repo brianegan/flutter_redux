@@ -447,7 +447,7 @@ void main() {
       Widget widget() => StoreProvider<String>(
             store: store,
             child: StoreConnector<String, String>(
-              onDidChange: (_) => states.add(BuildState.after),
+              onDidChange: (_, __) => states.add(BuildState.after),
               converter: (store) => store.state,
               builder: (context, latest) {
                 states.add(BuildState.during);
@@ -594,7 +594,7 @@ void main() {
             identityReducer,
             initialState: 'I',
           );
-          Widget widget([void Function(String viewModel)? onDidChange]) {
+          Widget widget([void Function(String? old, String viewModel)? onDidChange]) {
             return StoreProvider<String>(
               store: store,
               child: StoreConnector<String, String>(
@@ -615,7 +615,7 @@ void main() {
           expect(currentState, isNull);
 
           // Build the widget with a new onDidChange
-          final newWidget = widget((_) => currentState = 'S');
+          final newWidget = widget((_, __) => currentState = 'S');
           await tester.pumpWidget(newWidget);
 
           // Dispatch a new value, which should cause onDidChange to run
@@ -638,7 +638,7 @@ void main() {
             initialState: 'I',
           );
           Widget widget([
-            void Function(String prev, String current)? onWillChange,
+            void Function(String? prev, String current)? onWillChange,
           ]) {
             return StoreProvider<String>(
               store: store,
@@ -785,7 +785,7 @@ void main() {
       Widget widget() => StoreProvider<String>(
             store: store,
             child: StoreBuilder<String>(
-              onDidChange: (_) => states.add(BuildState.after),
+              onDidChange: (_, __) => states.add(BuildState.after),
               builder: (context, latest) {
                 states.add(BuildState.during);
                 return Container();
@@ -892,12 +892,12 @@ String identityReducer(String state, dynamic action) {
 }
 
 class CallCounter<S> {
-  final List<S> states = [];
+  final List<S?> states = [];
   final List<S?> states2 = [];
 
   int get callCount => states.length;
 
-  void call(S s1, [S? s2]) {
+  void call(S? s1, [S? s2]) {
     states.add(s1);
     states2.add(s2);
   }

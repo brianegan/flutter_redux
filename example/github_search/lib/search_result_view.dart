@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:github_search/github_client.dart';
 import 'package:transparent_image/transparent_image.dart';
+
+import 'search_result.dart';
 
 class SearchPopulatedView extends StatelessWidget {
   final SearchResult result;
@@ -10,7 +11,7 @@ class SearchPopulatedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: result?.items?.length ?? 0,
+      itemCount: result.items.length,
       itemBuilder: (context, index) {
         final item = result.items[index];
         return _SearchItem(item: item);
@@ -50,8 +51,8 @@ class SearchPopulatedView extends StatelessWidget {
 
 class _SearchItem extends StatelessWidget {
   const _SearchItem({
-    Key key,
-    @required this.item,
+    Key? key,
+    required this.item,
   }) : super(key: key);
 
   final SearchResultItem item;

@@ -1,7 +1,6 @@
 name: flutter_redux
 description: A set of utility Widgets that Provide and Connect to a Redux Store
-version: 1.0.0
-author: Brian Egan <brian@brianegan.com>
+version: 0.8.0
 homepage: https://github.com/brianegan/flutter_redux
 
 environment:

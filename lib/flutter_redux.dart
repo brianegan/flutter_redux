@@ -134,22 +134,38 @@ typedef IgnoreChangeTest<S> = bool Function(S state);
 
 /// A function that will be run on State change, before the build method.
 ///
-/// This function is passed the `ViewModel`, and if `distinct` is `true`,
-/// it will only be called if the `ViewModel` changes.
+/// This function is passed the previous and current `ViewModel`, and if
+/// `distinct` is `true`, it will only be called when the `ViewModel` changes.
 ///
 /// This is useful for making calls to other classes, such as a
 /// `Navigator` or `TabController`, in response to state changes.
 /// It can also be used to trigger an action based on the previous
 /// state.
+///
+/// ```dart
+/// StoreConnector<String, String>(
+///   converter: (store) => store.state,
+///   onWillChange: (prev, vm) {
+///     if (prev != vm) {
+///       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+///         content: Text(vm),
+///       ));
+///     }
+///   },
+///   builder: (context, vm) {
+///     return Text(vm);
+///   },
+/// );
+/// ```
 typedef OnWillChangeCallback<ViewModel> = void Function(
-  ViewModel previousViewModel,
+  ViewModel? previousViewModel,
   ViewModel newViewModel,
 );
 
 /// A function that will be run on State change, after the build method.
 ///
-/// This function is passed the `ViewModel`, and if `distinct` is `true`,
-/// it will only be called if the `ViewModel` changes.
+/// This function is passed the previous and current `ViewModel`, and if
+/// `distinct` is `true`, it will only be called when the `ViewModel` changes.
 ///
 /// This can be useful for running certain animations after the build is
 /// complete.
@@ -157,7 +173,28 @@ typedef OnWillChangeCallback<ViewModel> = void Function(
 /// Note: Using a [BuildContext] inside this callback can cause problems if
 /// the callback performs navigation. For navigation purposes, please use
 /// an [OnWillChangeCallback].
-typedef OnDidChangeCallback<ViewModel> = void Function(ViewModel viewModel);
+///
+/// ```dart
+/// StoreConnector<int, int>(
+///   converter: (store) => store.state,
+///   onDidChange: (prev, vm) {
+///     if (prev != vm) {
+///       myScrollController.animateTo(200);
+///     }
+///   },
+///   builder: (context, vm) {
+///     return ListView.builder(
+///       controller: myScrollController,
+///       itemCount: vm,
+///       builder: (context, index) => Text('$index'),
+///     );
+///   },
+/// );
+/// ```
+typedef OnDidChangeCallback<ViewModel> = void Function(
+  ViewModel? previousViewModel,
+  ViewModel viewModel,
+);
 
 /// A function that will be run after the Widget is built the first time.
 ///
@@ -421,7 +458,6 @@ class _StoreStreamListenerState<S, ViewModel>
   late Stream<ViewModel> _stream;
   ViewModel? _latestValue;
   ConverterError? _latestError;
-  S? _lastConvertedState;
 
   @override
   void initState() {
@@ -487,12 +523,6 @@ class _StoreStreamListenerState<S, ViewModel>
             : widget.builder(context, _latestValue!);
   }
 
-  bool _stateChanged(S state) {
-    var ifStateChanged = !identical(_lastConvertedState, widget.store.state);
-    _lastConvertedState = widget.store.state;
-    return ifStateChanged;
-  }
-
   ViewModel _mapConverter(S state) {
     return widget.converter(widget.store);
   }
@@ -506,12 +536,15 @@ class _StoreStreamListenerState<S, ViewModel>
   }
 
   bool _ignoreChange(S state) {
-    return !(widget.ignoreChange?.call(widget.store.state) ?? false);
+    if (widget.ignoreChange != null) {
+      return !widget.ignoreChange!(widget.store.state);
+    }
+
+    return true;
   }
 
   void _createStream() {
     _stream = widget.store.onChange
-        .where(_stateChanged)
         .where(_ignoreChange)
         .map(_mapConverter)
         // Don't use `Stream.distinct` because it cannot capture the initial
@@ -528,14 +561,15 @@ class _StoreStreamListenerState<S, ViewModel>
 
   void _handleChange(ViewModel vm, EventSink<ViewModel> sink) {
     _latestError = null;
-
-    widget.onWillChange?.call(_latestValue!, vm);
-
+    widget.onWillChange?.call(_latestValue, vm);
+    final previousValue = vm;
     _latestValue = vm;
 
     if (widget.onDidChange != null) {
       WidgetsBinding.instance?.addPostFrameCallback((_) {
-        widget.onDidChange!(_latestValue!);
+        if (mounted) {
+          widget.onDidChange!(previousValue, _latestValue!);
+        }
       });
     }
 
