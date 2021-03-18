@@ -1,4 +1,4 @@
-## 0.80
+## 0.8.0
 
   * Breaking Change: added null-safety
   * Breaking Change: updated to redux 5.0.0
