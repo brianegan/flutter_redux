@@ -104,7 +104,7 @@ void main() {
 
     testWidgets('supports a nullable ViewModel', (WidgetTester tester) async {
       final widget = StoreProvider<String?>(
-        store: Store<String?>(nullableIdentityReducer, initialState: null),
+        store: Store<String?>(identityReducer, initialState: null),
         child: StoreConnector<String?, String?>(
           converter: (store) => store.state,
           builder: (context, latest) {
@@ -119,6 +119,95 @@ void main() {
       await tester.pumpWidget(widget);
 
       expect(find.text('N'), findsOneWidget);
+    });
+
+    testWidgets('supports a nullable ViewModel (rebuildOnChange: false)',
+        (WidgetTester tester) async {
+      final widget = StoreProvider<String?>(
+        store: Store<String?>(identityReducer, initialState: null),
+        child: StoreConnector<String?, String?>(
+          converter: (store) => store.state,
+          rebuildOnChange: false,
+          builder: (context, latest) {
+            return Text(
+              latest ?? 'N',
+              textDirection: TextDirection.ltr,
+            );
+          },
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(find.text('N'), findsOneWidget);
+    });
+
+    testWidgets('supports a nullable ViewModel (onInitialBuild)',
+        (WidgetTester tester) async {
+      String? data = 'hello';
+
+      final widget = StoreProvider<String?>(
+        store: Store<String?>(identityReducer, initialState: null),
+        child: StoreConnector<String?, String?>(
+          converter: (store) => store.state,
+          onInitialBuild: (vm) => data = vm,
+          builder: (context, vm) => Container(),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(data, equals(null));
+    });
+
+    testWidgets('supports a nullable ViewModel (onDidChange)',
+        (WidgetTester tester) async {
+      String? data = 'hello';
+
+      final store = Store<String?>(
+        identityReducer,
+        initialState: 'world',
+      );
+
+      final widget = StoreProvider<String?>(
+        store: store,
+        child: StoreConnector<String?, String?>(
+          converter: (store) => store.state,
+          onDidChange: (prevVm, vm) => data = vm,
+          builder: (context, vm) => Container(),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+
+      store.dispatch(null);
+
+      await tester.pumpWidget(widget);
+
+      expect(data, equals(null));
+    });
+
+    testWidgets('supports a nullable ViewModel (nested)',
+        (WidgetTester tester) async {
+      final widget = StoreProvider<StateWithNullable>(
+        store: Store<StateWithNullable>(
+          identityReducer,
+          initialState: StateWithNullable(),
+        ),
+        child: StoreConnector<StateWithNullable, int?>(
+          converter: (store) => store.state.data,
+          builder: (context, int? data) {
+            return Text(
+              data != null ? '$data' : 'no data',
+              textDirection: TextDirection.ltr,
+            );
+          },
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(find.text('no data'), findsOneWidget);
     });
 
     testWidgets('converter errors in initState are thrown by the Widget',
@@ -751,7 +840,7 @@ void main() {
 
     testWidgets('runs a function before rebuild', (WidgetTester tester) async {
       final counter = CallCounter<Store<String>>();
-      final store = Store(identityReducer, initialState: 'A');
+      final store = Store<String>(identityReducer, initialState: 'A');
 
       Widget widget() {
         return StoreProvider(
@@ -908,12 +997,14 @@ class _StoreCaptorStatefulState extends State<StoreCaptorStateful> {
   }
 }
 
-String identityReducer(String state, dynamic action) {
-  return action.toString();
+T identityReducer<T>(T state, dynamic action) {
+  return action as T;
 }
 
-String nullableIdentityReducer(String? state, dynamic action) {
-  return action.toString();
+class StateWithNullable {
+  StateWithNullable({this.data});
+
+  final int? data;
 }
 
 class CallCounter<S> {

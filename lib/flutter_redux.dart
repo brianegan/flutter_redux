@@ -459,6 +459,11 @@ class _StoreStreamListenerState<S, ViewModel>
   ViewModel? _latestValue;
   ConverterError? _latestError;
 
+  /// `_latestValue!` would throw _CastError if `ViewModel` is nullable,
+  /// therefore `_latestValue as ViewModel` is used.
+  /// https://dart.dev/null-safety/understanding-null-safety#nullability-and-generics
+  ViewModel get _requireLatestValue => _latestValue as ViewModel;
+
   @override
   void initState() {
     widget.onInit?.call(widget.store);
@@ -467,7 +472,7 @@ class _StoreStreamListenerState<S, ViewModel>
 
     if (widget.onInitialBuild != null) {
       WidgetsBinding.instance?.addPostFrameCallback((_) {
-        widget.onInitialBuild!(_latestValue!);
+        widget.onInitialBuild!(_requireLatestValue);
       });
     }
 
@@ -514,13 +519,13 @@ class _StoreStreamListenerState<S, ViewModel>
 
               return widget.builder(
                 context,
-                _latestValue as ViewModel,
+                _requireLatestValue,
               );
             },
           )
         : _latestError != null
             ? throw _latestError!
-            : widget.builder(context, _latestValue as ViewModel);
+            : widget.builder(context, _requireLatestValue);
   }
 
   ViewModel _mapConverter(S state) {
@@ -568,7 +573,7 @@ class _StoreStreamListenerState<S, ViewModel>
     if (widget.onDidChange != null) {
       WidgetsBinding.instance?.addPostFrameCallback((_) {
         if (mounted) {
-          widget.onDidChange!(previousValue, _latestValue!);
+          widget.onDidChange!(previousValue, _requireLatestValue);
         }
       });
     }
