@@ -1,3 +1,7 @@
+## 0.8.1
+
+  * Support nullable ViewModels
+
 ## 0.8.0
 
   * Breaking Change: added null-safety

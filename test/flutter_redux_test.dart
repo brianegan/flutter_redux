@@ -102,6 +102,25 @@ void main() {
       expect(find.text('I'), findsOneWidget);
     });
 
+    testWidgets('supports a nullable ViewModel', (WidgetTester tester) async {
+      final widget = StoreProvider<String?>(
+        store: Store<String?>(nullableIdentityReducer, initialState: null),
+        child: StoreConnector<String?, String?>(
+          converter: (store) => store.state,
+          builder: (context, latest) {
+            return Text(
+              latest ?? 'N',
+              textDirection: TextDirection.ltr,
+            );
+          },
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(find.text('N'), findsOneWidget);
+    });
+
     testWidgets('converter errors in initState are thrown by the Widget',
         (WidgetTester tester) async {
       final widget = StoreProvider<String>(
@@ -594,7 +613,9 @@ void main() {
             identityReducer,
             initialState: 'I',
           );
-          Widget widget([void Function(String? old, String viewModel)? onDidChange]) {
+          Widget widget([
+            void Function(String? old, String viewModel)? onDidChange,
+          ]) {
             return StoreProvider<String>(
               store: store,
               child: StoreConnector<String, String>(
@@ -888,6 +909,10 @@ class _StoreCaptorStatefulState extends State<StoreCaptorStateful> {
 }
 
 String identityReducer(String state, dynamic action) {
+  return action.toString();
+}
+
+String nullableIdentityReducer(String? state, dynamic action) {
   return action.toString();
 }
 

@@ -514,13 +514,13 @@ class _StoreStreamListenerState<S, ViewModel>
 
               return widget.builder(
                 context,
-                _latestValue!,
+                _latestValue as ViewModel,
               );
             },
           )
         : _latestError != null
             ? throw _latestError!
-            : widget.builder(context, _latestValue!);
+            : widget.builder(context, _latestValue as ViewModel);
   }
 
   ViewModel _mapConverter(S state) {
