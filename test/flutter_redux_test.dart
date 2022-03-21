@@ -739,6 +739,34 @@ void main() {
           expect(currentState, 'S');
         },
       );
+
+      testWidgets('onDidChange errors are thrown by the Widget',
+          (WidgetTester tester) async {
+        final store = Store<String>(identityReducer, initialState: 'I');
+        final widget = StoreProvider<String>(
+          store: store,
+          child: StoreConnector<String, String>(
+            converter: (store) => store.state,
+            onDidChange: (_, __) => throw StateError('OnDidChange Error'),
+            builder: (context, latest) {
+              return Text(
+                latest,
+                textDirection: TextDirection.ltr,
+              );
+            },
+          ),
+        );
+
+        await tester.pumpWidget(widget);
+
+        // Dispatch a new value, which should cause onWillChange to run
+        store.dispatch('B');
+
+        // Pump the widget tree display any errors
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isInstanceOf<StateError>());
+      });
       testWidgets(
         'onWillChange works as expected',
         (WidgetTester tester) async {
@@ -784,6 +812,35 @@ void main() {
           expect(currentState, 'S');
         },
       );
+
+      
+      testWidgets('onWillChange errors are thrown by the Widget',
+          (WidgetTester tester) async {
+        final store = Store<String>(identityReducer, initialState: 'I');
+        final widget = StoreProvider<String>(
+          store: store,
+          child: StoreConnector<String, String>(
+            converter: (store) => store.state,
+            onWillChange: (_, __) => throw StateError('onWillChange Error'),
+            builder: (context, latest) {
+              return Text(
+                latest,
+                textDirection: TextDirection.ltr,
+              );
+            },
+          ),
+        );
+
+        await tester.pumpWidget(widget);
+
+        // Dispatch a new value, which should cause onWillChange to run
+        store.dispatch('B');
+
+        // Pump the widget tree display any errors
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isInstanceOf<StateError>());
+      });
     });
   });
 
