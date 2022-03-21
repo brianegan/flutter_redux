@@ -17,7 +17,7 @@ class StoreProvider<S> extends InheritedWidget {
     Key? key,
     required Store<S> store,
     required Widget child,
-  })   : _store = store,
+  })  : _store = store,
         super(key: key, child: child);
 
   /// A method that can be called by descendant Widgets to retrieve the Store
@@ -457,7 +457,7 @@ class _StoreStreamListenerState<S, ViewModel>
     extends State<_StoreStreamListener<S, ViewModel>> {
   late Stream<ViewModel> _stream;
   ViewModel? _latestValue;
-  ConverterError? _latestError;
+  Object? _latestError;
 
   // `_latestValue!` would throw _CastError if `ViewModel` is nullable,
   // therefore `_latestValue as ViewModel` is used.
@@ -471,7 +471,7 @@ class _StoreStreamListenerState<S, ViewModel>
     _computeLatestValue();
 
     if (widget.onInitialBuild != null) {
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.onInitialBuild!(_requireLatestValue);
       });
     }
@@ -560,6 +560,9 @@ class _StoreStreamListenerState<S, ViewModel>
         // transformations, such as ignoreChange.
         .transform(StreamTransformer.fromHandlers(
           handleData: _handleChange,
+          handleError: _handleConverterError,
+        ))
+        .transform(StreamTransformer.fromHandlers(
           handleError: _handleError,
         ));
   }
@@ -571,7 +574,7 @@ class _StoreStreamListenerState<S, ViewModel>
     _latestValue = vm;
 
     if (widget.onDidChange != null) {
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           widget.onDidChange!(previousValue, _requireLatestValue);
         }
@@ -581,13 +584,23 @@ class _StoreStreamListenerState<S, ViewModel>
     sink.add(vm);
   }
 
-  void _handleError(
+  void _handleConverterError(
     Object error,
     StackTrace stackTrace,
     EventSink<ViewModel> sink,
   ) {
     _latestValue = null;
     _latestError = ConverterError(error, stackTrace);
+    sink.addError(error, stackTrace);
+  }
+
+  void _handleError(
+    Object error,
+    StackTrace stackTrace,
+    EventSink<ViewModel> sink,
+  ) {
+    _latestValue = null;
+    _latestError = error;
     sink.addError(error, stackTrace);
   }
 }
