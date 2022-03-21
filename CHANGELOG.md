@@ -1,3 +1,7 @@
+## 0.9.0
+
+  * Throw Errors from onWillChange and onDidChange callbacks
+
 ## 0.8.2
 
   * Nullable ViewModels for callback functions as well as build
