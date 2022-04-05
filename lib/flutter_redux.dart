@@ -528,10 +528,6 @@ class _StoreStreamListenerState<S, ViewModel>
             : widget.builder(context, _requireLatestValue);
   }
 
-  ViewModel _mapConverter(S state) {
-    return widget.converter(widget.store);
-  }
-
   bool _whereDistinct(ViewModel vm) {
     if (widget.distinct) {
       return vm != _latestValue;
@@ -551,7 +547,10 @@ class _StoreStreamListenerState<S, ViewModel>
   void _createStream() {
     _stream = widget.store.onChange
         .where(_ignoreChange)
-        .map(_mapConverter)
+        .map((_) => widget.converter(widget.store))
+        .transform(StreamTransformer.fromHandlers(
+          handleError: _handleConverterError,
+        ))
         // Don't use `Stream.distinct` because it cannot capture the initial
         // ViewModel produced by the `converter`.
         .where(_whereDistinct)
@@ -560,8 +559,8 @@ class _StoreStreamListenerState<S, ViewModel>
         // transformations, such as ignoreChange.
         .transform(StreamTransformer.fromHandlers(
           handleData: _handleChange,
-          handleError: _handleConverterError,
         ))
+        // Handle any errors from converter/onWillChange/onDidChange
         .transform(StreamTransformer.fromHandlers(
           handleError: _handleError,
         ));
@@ -589,9 +588,7 @@ class _StoreStreamListenerState<S, ViewModel>
     StackTrace stackTrace,
     EventSink<ViewModel> sink,
   ) {
-    _latestValue = null;
-    _latestError = ConverterError(error, stackTrace);
-    sink.addError(error, stackTrace);
+    sink.addError(ConverterError(error, stackTrace), stackTrace);
   }
 
   void _handleError(
