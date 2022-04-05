@@ -16,8 +16,8 @@ jobs:
         with:
           channel: 'beta'
       
-      - name: Pub get
-        run: flutter pub get
+      - name: Recursive pub get
+        run: find . -name 'pubspec.yaml' -execdir flutter pub get \;
     
       - name: Check formatting
         run: flutter format --set-exit-if-changed .
