@@ -1,3 +1,7 @@
+## 0.10.0-beta.1
+
+  * Remove deprecated null check against `WidgetsBinding.instance`
+  
 ## 0.9.0
 
   * Throw Errors from onWillChange and onDidChange callbacks
