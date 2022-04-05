@@ -813,7 +813,6 @@ void main() {
         },
       );
 
-      
       testWidgets('onWillChange errors are thrown by the Widget',
           (WidgetTester tester) async {
         final store = Store<String>(identityReducer, initialState: 'I');
