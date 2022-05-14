@@ -44,7 +44,7 @@ class SearchMiddleware implements MiddlewareClass<SearchState> {
               .search(action.term)
               .then((result) => store..dispatch(SearchResultAction(result)))
               .catchError((Object e, StackTrace s) =>
-          store..dispatch(SearchErrorAction())));
+                  store..dispatch(SearchErrorAction())));
         }
       });
     }

@@ -1,0 +1,34 @@
+name: Flutter
+on:
+  pull_request:
+  push: 
+    branches: 
+      - master
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'beta'
+      
+      - name: Recursive pub get
+        run: find . -name 'pubspec.yaml' -execdir flutter pub get \;
+    
+      - name: Check formatting
+        run: flutter format --set-exit-if-changed .
+    
+      - name: Run Analyzer
+        run: flutter analyze .
+    
+      - name: Run Tests with Coverage
+        run: flutter test --coverage --coverage-path=./lcov.info
+
+      - name: Upload Coverage Report
+        uses: codecov/codecov-action@v2
+        with:
+          files: ./lcov.info
