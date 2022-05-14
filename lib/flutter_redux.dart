@@ -569,7 +569,7 @@ class _StoreStreamListenerState<S, ViewModel>
   void _handleChange(ViewModel vm, EventSink<ViewModel> sink) {
     _latestError = null;
     widget.onWillChange?.call(_latestValue, vm);
-    final previousValue = vm;
+    final previousValue = _latestValue;
     _latestValue = vm;
 
     if (widget.onDidChange != null) {

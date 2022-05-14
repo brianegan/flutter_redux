@@ -551,11 +551,17 @@ void main() {
         (WidgetTester tester) async {
       final states = <BuildState>[];
       final store = Store<String>(identityReducer, initialState: 'A');
+      String? previousViewModel;
+      String? nextViewModel;
 
       Widget widget() => StoreProvider<String>(
             store: store,
             child: StoreConnector<String, String>(
-              onDidChange: (_, __) => states.add(BuildState.after),
+              onDidChange: (prev, next) {
+                previousViewModel = prev;
+                nextViewModel = next;
+                states.add(BuildState.after);
+              },
               converter: (store) => store.state,
               builder: (context, latest) {
                 states.add(BuildState.during);
@@ -572,6 +578,8 @@ void main() {
       store.dispatch('N');
       await tester.pumpWidget(widget());
       expect(states, [BuildState.during, BuildState.during, BuildState.after]);
+      expect(previousViewModel, 'A');
+      expect(nextViewModel, 'N');
 
       // Does not run the callback if the VM has not changed
       await tester.pumpWidget(widget());
@@ -770,7 +778,8 @@ void main() {
       testWidgets(
         'onWillChange works as expected',
         (WidgetTester tester) async {
-          String? currentState;
+          String? prevVm;
+          String? nextVm;
           final store = Store<String>(
             identityReducer,
             initialState: 'I',
@@ -795,10 +804,14 @@ void main() {
           await tester.pumpWidget(widget());
 
           // No onWillChange function to run, so currentState should be null
-          expect(currentState, isNull);
+          expect(prevVm, isNull);
+          expect(nextVm, isNull);
 
           // Build the widget with a new onWillChange
-          final newWidget = widget((_, __) => currentState = 'S');
+          final newWidget = widget((prev, next) {
+            prevVm = prev;
+            nextVm = next;
+          });
           await tester.pumpWidget(newWidget);
 
           // Dispatch a new value, which should cause onWillChange to run
@@ -809,7 +822,8 @@ void main() {
           await tester.pumpWidget(newWidget);
 
           // Expect our new onWillChange to run
-          expect(currentState, 'S');
+          expect(prevVm, 'A');
+          expect(nextVm, 'B');
         },
       );
 
