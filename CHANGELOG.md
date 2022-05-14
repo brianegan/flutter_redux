@@ -1,3 +1,7 @@
+## 0.10.0
+
+  * `onDidChange` now passed proper old and new value
+  
 ## 0.10.0-beta.1
 
   * Remove deprecated null check against `WidgetsBinding.instance`
