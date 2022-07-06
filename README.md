@@ -6,7 +6,7 @@ A set of utilities that allow you to easily consume a
 [Redux](https://pub.dartlang.org/packages/redux) Store to build Flutter Widgets.
 
 This package supports null-safety and is built to work with
-[Redux.dart](https://pub.dartlang.org/packages/redux) 5.0.0+.
+[Redux.dart](https://pub.dartlang.org/packages/redux) 5.0.0+ and Flutter 3+.
 
 ## Redux Widgets 
 
