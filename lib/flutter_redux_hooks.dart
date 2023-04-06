@@ -1,4 +1,4 @@
-library flutter_redux;
+library flutter_redux_hooks;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart'
