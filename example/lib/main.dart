@@ -29,7 +29,7 @@ void main() {
 class FlutterReduxApp extends HookWidget {
   final String title;
 
-  FlutterReduxApp({Key key, this.title}) : super(key: key);
+  FlutterReduxApp({Key? key, required this.title}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -47,19 +47,19 @@ class FlutterReduxApp extends HookWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 'You have pushed the button this many times:',
               ),
               Text(
-                count,
-                style: TextStyle(color: Colors.white, fontSize: 36),
+                count!,
+                style: const TextStyle(color: Colors.white, fontSize: 36),
               ),
             ],
           ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => dispatch(Actions.Increment),
-          child: Icon(Icons.add),
+          child: const Icon(Icons.add),
         ),
       ),
     );

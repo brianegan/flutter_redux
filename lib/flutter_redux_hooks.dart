@@ -3,7 +3,6 @@ library flutter_redux;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart'
     show use, Hook, HookState, useStream;
-import 'package:meta/meta.dart';
 import 'package:redux/redux.dart';
 
 /// Provides a Redux [Store] to all descendants of this Widget. This should
@@ -15,12 +14,10 @@ class StoreProvider<S> extends InheritedWidget {
   /// Create a [StoreProvider] by passing in the required [store] and [child]
   /// parameters.
   const StoreProvider({
-    Key key,
-    @required Store<S> store,
-    @required Widget child,
-  })  : assert(store != null),
-        assert(child != null),
-        _store = store,
+    Key? key,
+    required Store<S> store,
+    required Widget child,
+  })  : _store = store,
         super(key: key, child: child);
 
   /// A method that can be called by descendant Widgets to retrieve the Store
@@ -78,16 +75,8 @@ class StoreProvider<S> extends InheritedWidget {
             .getElementForInheritedWidgetOfExactType<StoreProvider<S>>()
             ?.widget) as StoreProvider<S>;
 
-    if (provider == null) {
-      final type = _typeOf<StoreProvider<S>>();
-      throw StoreProviderError(type);
-    }
-
     return provider._store;
   }
-
-  // Workaround to capture generics
-  static Type _typeOf<T>() => T;
 
   @override
   bool updateShouldNotify(StoreProvider<S> oldWidget) =>
@@ -190,8 +179,8 @@ typedef EqualityFn<T> = bool Function(T a, T b);
 ///   }
 /// }
 /// ```
-Output useSelector<State, Output>(Selector<State, Output> selector,
-    [EqualityFn equalityFn]) {
+Output? useSelector<State, Output>(Selector<State, Output> selector,
+    [EqualityFn? equalityFn]) {
   final store = useStore<State>();
   final snap = useStream<Output>(
       store.onChange.map(selector).distinct(equalityFn),
